@@ -1,9 +1,17 @@
 import React from "react";
 import { WidgetBox } from "@/components/ui/WidgetBox";
-import { Heading, Text, Flex, Badge, Status as ChakraStatus } from "@chakra-ui/react";
-import type { ColorPalette } from "@chakra-ui/react"
+import {
+    Heading,
+    Text,
+    Flex,
+    Badge,
+    Status as ChakraStatus,
+    IconButton,
+} from "@chakra-ui/react";
+import type { Color } from "@chakra-ui/react";
+import { LuHand, LuMaximize2 } from "react-icons/lu";
 
-type StatusValue = "success" | "error" | "warning" | "info"
+type StatusValue = "success" | "error" | "warning" | "info";
 
 interface StatusWidgetProps {
     title?: string;
@@ -12,37 +20,67 @@ interface StatusWidgetProps {
 }
 
 export interface StatusProps extends ChakraStatus.RootProps {
-    value?: StatusValue
+    value?: StatusValue;
 }
 
-const statusMap: Record<StatusValue, ColorPalette> = {
-    success: "green",
-    error: "red",
-    warning: "orange",
+const statusMap: Record<StatusValue, Color> = {
+    success: "#21E91A",
+    error: "#F6143A",
+    warning: "#F99807",
     info: "blue",
-}
+};
 
 const Status = React.forwardRef<HTMLDivElement, StatusProps>(
     function Status(props, ref) {
-        const { children, value = "info", ...rest } = props
-        const colorPalette = rest.colorPalette ?? statusMap[value]
+        const { children, value = "info", ...rest } = props;
+        const colorPalette = rest.colorPalette ?? statusMap[value];
         return (
-            <ChakraStatus.Root ref={ref} {...rest} colorPalette={colorPalette}>
-                <ChakraStatus.Indicator />
+            <ChakraStatus.Root ref={ref} {...rest}>
+                <ChakraStatus.Indicator bgColor={colorPalette} />
                 {children}
             </ChakraStatus.Root>
-        )
-    },
-)
+        );
+    }
+);
 
-export const StatusWidget: React.FC<StatusWidgetProps> = ({ title, status }) => (
+export const StatusWidget: React.FC<StatusWidgetProps> = ({
+    title,
+    status,
+}) => (
     <WidgetBox>
         <Flex gap={1} alignItems="center" justifyContent="space-between">
-            <Flex gap={1}><Badge height={6} px={3}>Project</Badge><Badge height={6} px={3}>UX</Badge></Flex>
+            <Flex gap={1}>
+                <Badge height={6} px={2} bgColor={"white"} color="blackAlpha.800" fontSize={"2xs"}>
+                    Project
+                </Badge>
+                <Badge height={6} px={2} bgColor={"white"} color="blackAlpha.800" fontSize={"2xs"}>
+                    UX
+                </Badge>
+            </Flex>
             <Status value={status} />
         </Flex>
-        <Heading size="md" mb={2}>{title}</Heading>
-        <Text mb={4}>Status: {status}</Text>
-
+        <Flex alignItems="center" gap={2} ml={1} grow={1}>
+            <Heading size="md" fontWeight={450}>{title}</Heading>
+        </Flex>
+        <Flex gap={1}>
+            <IconButton
+                size={"2xs"}
+                rounded="full"
+                aria-label="Participate in discussion"
+                variant="solid"
+                bgColor="#7AF0A4"
+            >
+                <LuHand />
+            </IconButton>
+            <IconButton
+                size={"2xs"}
+                rounded="full"
+                aria-label="Open"
+                variant="solid"
+                bgColor="#7AF0A4"
+            >
+                <LuMaximize2 />
+            </IconButton>
+        </Flex>
     </WidgetBox>
 );
