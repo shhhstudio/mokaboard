@@ -7,8 +7,8 @@ const DesignSystemPage: React.FC = () => {
     <Box minH="100vh" bg="white" p={10}>
       <Heading mb={8} textAlign="center">MOKABOARD Design System</Heading>
       <SimpleGrid columns={[1, 2, 3]} gap={8} width="max-content" marginX="auto">
-        <StatusWidget title="Prod Malaisie lancée, batch Chine en finalisation, and more details for APF design" status="success" />
-        <StatusWidget title="Weekly Update" status="warning" />
+        <StatusWidget title="Prod Malaisie lancée. Prod Chine en finalisation." status="success" />
+        <StatusWidget title="Pas de Master Plan. Ventes en RUN." status="warning" />
         <StatusWidget title="Weekly Update" status="error" />
 
       </SimpleGrid>
