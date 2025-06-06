@@ -16,7 +16,6 @@ type StatusValue = "success" | "error" | "warning" | "info";
 interface StatusWidgetProps {
     title?: string;
     status?: StatusValue;
-    hashtags?: string[];
 }
 
 export interface StatusProps extends ChakraStatus.RootProps {
@@ -24,10 +23,10 @@ export interface StatusProps extends ChakraStatus.RootProps {
 }
 
 const statusMap: Record<StatusValue, Color> = {
-    success: "#21E91A",
-    error: "#F6143A",
-    warning: "#F99807",
-    info: "blue",
+    success: "statusSuccess",
+    error: "statusError",
+    warning: "statusWarning",
+    info: "statusInfo",
 };
 
 const Status = React.forwardRef<HTMLDivElement, StatusProps>(
@@ -68,7 +67,7 @@ export const StatusWidget: React.FC<StatusWidgetProps> = ({
                 rounded="full"
                 aria-label="Participate in discussion"
                 variant="solid"
-                bgColor="#7AF0A4"
+                bgColor="accent"
             >
                 <LuHand />
             </IconButton>
@@ -77,7 +76,7 @@ export const StatusWidget: React.FC<StatusWidgetProps> = ({
                 rounded="full"
                 aria-label="Open"
                 variant="solid"
-                bgColor="#7AF0A4"
+                bgColor="accent"
             >
                 <LuMaximize2 />
             </IconButton>
