@@ -3,5 +3,5 @@ import { Heading as ChakraHeading, HeadingProps as ChakraHeadingProps } from "@c
 
 
 export const Heading: React.FC<ChakraHeadingProps> = ({ children }) => (
-    <ChakraHeading size="lg" fontWeight={500}>{children}</ChakraHeading>
+    <ChakraHeading size="md" fontWeight={500}>{children}</ChakraHeading>
 );

@@ -3,11 +3,11 @@ import React from "react";
 
 export const WidgetBox = ({ children, ...props }: FlexProps) => (
     <Flex
-        p={4}
+        p={3}
         borderRadius="2xl"
         bg="widgetBg"
-        width="200px"
-        height="200px"
+        width="176px"
+        height="176px"
         flexDirection={"column"}
         {...props}
     >
