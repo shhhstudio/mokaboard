@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Center, SimpleGrid, Flex, Heading } from "@chakra-ui/react";
-import { StatusWidget, TitleWidget } from "@/components/widgets";
+import { SimpleGrid, Flex } from "@chakra-ui/react";
+import { StatusWidget } from "@/components/widgets";
 
 const DesignSystemPage: React.FC = () => {
   return (
