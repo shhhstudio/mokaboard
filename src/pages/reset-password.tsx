@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Box, Button, Center, Input, VStack, Text } from '@chakra-ui/react';
-import { navigate, useLocation, Link } from 'gatsby';
+import { navigate, Link } from 'gatsby';
+import { useLocation } from '@reach/router';
 import { supabase } from '@/lib/supabaseClient';
 
 const ResetPasswordPage: React.FC = () => {
