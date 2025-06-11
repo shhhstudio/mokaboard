@@ -11,7 +11,10 @@ const ForgotPasswordPage: React.FC = () => {
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const redirectTo = `${window.location.origin}/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo,
+    });
     if (error) {
       setError(error.message);
       setMessage(null);
