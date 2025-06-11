@@ -5,14 +5,17 @@ import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/lib/supabaseClient';
 
 const ProfilePage: React.FC = () => {
-  const { session } = useAuth();
+  const { session, loading } = useAuth();
 
   React.useEffect(() => {
-    if (!session) {
+    if (!loading && !session) {
       navigate('/login');
     }
-  }, [session]);
+  }, [session, loading]);
 
+  if (loading) {
+    return null;
+  }
   if (!session) {
     return null;
   }
