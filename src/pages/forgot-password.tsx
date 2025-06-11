@@ -1,29 +1,30 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { Box, Button, Center, Input, VStack, Text } from '@chakra-ui/react';
-import { navigate, Link } from 'gatsby';
+import { Link } from 'gatsby';
 import { supabase } from '@/lib/supabaseClient';
 
-const LoginPage: React.FC = () => {
+const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
     if (error) {
       setError(error.message);
+      setMessage(null);
     } else {
       setError(null);
-      navigate('/');
+      setMessage('Password reset email sent. Please check your inbox.');
     }
   };
 
   return (
     <Center minH="100vh" bg="gray.50">
       <Box p={8} borderRadius="lg" boxShadow="md" bg="white">
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleReset}>
           <VStack spacing={4}>
             <Input
               type="email"
@@ -32,26 +33,21 @@ const LoginPage: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
             {error && (
               <Text color="red.500" fontSize="sm">
                 {error}
               </Text>
             )}
+            {message && (
+              <Text color="green.500" fontSize="sm">
+                {message}
+              </Text>
+            )}
             <Button type="submit" colorScheme="green" width="full">
-              Login
+              Send reset link
             </Button>
             <Text fontSize="sm">
-              Don't have an account? <Link to="/register">Register</Link>
-            </Text>
-            <Text fontSize="sm">
-              <Link to="/forgot-password">Forgot password?</Link>
+              Remembered? <Link to="/login">Back to login</Link>
             </Text>
           </VStack>
         </form>
@@ -60,4 +56,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage;
+export default ForgotPasswordPage;

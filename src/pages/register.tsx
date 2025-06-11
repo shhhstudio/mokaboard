@@ -4,14 +4,14 @@ import { Box, Button, Center, Input, VStack, Text } from '@chakra-ui/react';
 import { navigate, Link } from 'gatsby';
 import { supabase } from '@/lib/supabaseClient';
 
-const LoginPage: React.FC = () => {
+const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signUp({ email, password });
     if (error) {
       setError(error.message);
     } else {
@@ -23,7 +23,7 @@ const LoginPage: React.FC = () => {
   return (
     <Center minH="100vh" bg="gray.50">
       <Box p={8} borderRadius="lg" boxShadow="md" bg="white">
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleRegister}>
           <VStack spacing={4}>
             <Input
               type="email"
@@ -45,13 +45,10 @@ const LoginPage: React.FC = () => {
               </Text>
             )}
             <Button type="submit" colorScheme="green" width="full">
-              Login
+              Register
             </Button>
             <Text fontSize="sm">
-              Don't have an account? <Link to="/register">Register</Link>
-            </Text>
-            <Text fontSize="sm">
-              <Link to="/forgot-password">Forgot password?</Link>
+              Already have an account? <Link to="/login">Login</Link>
             </Text>
           </VStack>
         </form>
@@ -60,4 +57,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
