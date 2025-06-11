@@ -1,17 +1,17 @@
-import React from 'react';
-import { Router } from '@reach/router';
-import Layout from '@/components/Layout';
-import PrivateRoute from '@/components/PrivateRoute';
-import Login from '@/pages/login';
-import Profile from '@/pages/profile';
+import React, { useEffect } from 'react';
+import { navigate } from 'gatsby';
+import { useAuth } from '@/providers/AuthProvider';
 
-const App: React.FC = () => (
-  <Layout>
-    <Router>
-      <PrivateRoute path="/app/profile" component={Profile} />
-      <Login path="/app/login" />
-    </Router>
-  </Layout>
-);
+const App: React.FC = () => {
+  const { session, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading) {
+      navigate(session ? '/app/profile' : '/app/login');
+    }
+  }, [loading, session]);
+
+  return null;
+};
 
 export default App;
