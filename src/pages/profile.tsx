@@ -4,7 +4,11 @@ import { navigate } from 'gatsby';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { supabase } from '@/lib/supabaseClient';
 
-const ProfilePage: React.FC = () => {
+interface RouteProps {
+  path?: string;
+}
+
+const ProfilePage: React.FC<RouteProps> = () => {
   const { session, loading } = useRequireAuth();
 
   if (loading) {
@@ -16,7 +20,7 @@ const ProfilePage: React.FC = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate('/login');
+    navigate('/app/login');
   };
 
   return (

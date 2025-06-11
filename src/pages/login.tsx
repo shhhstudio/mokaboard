@@ -4,7 +4,11 @@ import { Box, Button, Center, Input, VStack, Text } from '@chakra-ui/react';
 import { navigate, Link } from 'gatsby';
 import { supabase } from '@/lib/supabaseClient';
 
-const LoginPage: React.FC = () => {
+interface RouteProps {
+  path?: string;
+}
+
+const LoginPage: React.FC<RouteProps> = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +20,7 @@ const LoginPage: React.FC = () => {
       setError(error.message);
     } else {
       setError(null);
-      navigate('/');
+      navigate('/app/profile');
     }
   };
 

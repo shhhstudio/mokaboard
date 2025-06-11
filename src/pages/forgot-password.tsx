@@ -50,7 +50,7 @@ const ForgotPasswordPage: React.FC = () => {
               Send reset link
             </Button>
             <Text fontSize="sm">
-              Remembered? <Link to="/login">Back to login</Link>
+              Remembered? <Link to="/app/login">Back to login</Link>
             </Text>
           </VStack>
         </form>

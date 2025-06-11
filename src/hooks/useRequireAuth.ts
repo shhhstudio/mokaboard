@@ -7,7 +7,7 @@ export const useRequireAuth = () => {
 
   useEffect(() => {
     if (!loading && !session) {
-      navigate('/login');
+      navigate('/app/login');
     }
   }, [loading, session]);
 

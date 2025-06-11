@@ -48,7 +48,7 @@ const RegisterPage: React.FC = () => {
               Register
             </Button>
             <Text fontSize="sm">
-              Already have an account? <Link to="/login">Login</Link>
+              Already have an account? <Link to="/app/login">Login</Link>
             </Text>
           </VStack>
         </form>

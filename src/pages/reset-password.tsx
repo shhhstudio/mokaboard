@@ -46,7 +46,7 @@ const ResetPasswordPage: React.FC = () => {
     if (error) {
       setError(error.message);
     } else {
-      navigate('/login');
+      navigate('/app/login');
     }
   };
 
