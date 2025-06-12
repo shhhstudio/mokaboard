@@ -25,18 +25,18 @@ const App: React.FC<PageProps> = () => {
   if (session === null) {
     return (
       <Router>
-        <Login default path="/app/login" />
         <Register path="/app/register" />
         <ForgotPassword path="/app/forgot-password" />
+        <Login default path="/app/login" />
       </Router>
     );
   }
 
   return (
     <Router>
-      <Home default path="/app" />
       <Profile path="/app/profile" />
       <ResetPassword path="/app/reset-password" />
+      <Home default path="/app" />
     </Router>
   );
 };
