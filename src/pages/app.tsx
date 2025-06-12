@@ -16,7 +16,6 @@ const App: React.FC = () => {
         <Login default />
         <Register path="/app/register" />
         <ForgotPassword path="/app/forgot-password" />
-        <ResetPassword path="/app/reset-password" />
       </Router>
     );
   }
