@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import { SimpleGrid, Flex } from "@chakra-ui/react";
 import { StatusWidget } from "@/components/widgets";
 

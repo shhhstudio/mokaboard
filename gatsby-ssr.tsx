@@ -1,8 +1,8 @@
-import * as React from "react";
+import React from "react";
 import { AppProvider } from "@/providers/AppProvider";
 
-import type { WrapRootElementNodeArgs } from "gatsby";
+import type { WrapRootElementNodeArgs, GatsbySSR } from "gatsby";
 
-export const wrapRootElement = ({ element }: WrapRootElementNodeArgs) => (
-  <AppProvider>{element}</AppProvider>
-);
+export const wrapRootElement: GatsbySSR["wrapRootElement"] = ({
+  element,
+}: WrapRootElementNodeArgs) => <AppProvider>{element}</AppProvider>;

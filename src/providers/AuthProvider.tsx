@@ -4,33 +4,34 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 
 interface AuthContextProps {
-  session: Session | null;
-  loading: boolean;
+  session: Session | null | undefined;
 }
 
-const AuthContext = createContext<AuthContextProps>({ session: null, loading: true });
+const AuthContext = createContext<AuthContextProps>({ session: undefined });
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth: () => AuthContextProps = () => useContext(AuthContext);
+
+export const useSession: () => Session | null | undefined = () => {
+  const { session } = useAuth();
+  return session;
+}
 
 export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
-      setLoading(false);
     });
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, sess) => {
       setSession(sess);
-      setLoading(false);
     });
     return () => {
       subscription.unsubscribe();
     };
   }, []);
 
-  return <AuthContext.Provider value={{ session, loading }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ session }}>{children}</AuthContext.Provider>;
 };
