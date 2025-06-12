@@ -26,7 +26,7 @@ export const ForgotPassword: React.FC<RouteProps> = () => {
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
-    const redirectTo = `${window.location.origin}/app/reset-password`;
+    const redirectTo = `https://mokaboard.com/app/reset-password`;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo,
     });
