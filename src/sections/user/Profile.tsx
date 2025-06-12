@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Box, Button, Center, Heading, Text } from '@chakra-ui/react';
 import { navigate } from 'gatsby';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
