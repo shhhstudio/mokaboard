@@ -1,17 +1,32 @@
-import React, { useEffect } from 'react';
-import { navigate } from 'gatsby';
-import { useAuth } from '@/providers/AuthProvider';
+import React from "react";
+import { Router } from "@reach/router";
+import { Profile, Login, Register, ForgotPassword, ResetPassword } from "@/sections/user";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 const App: React.FC = () => {
-  const { session, loading } = useAuth();
+  if (typeof window === "undefined") {
+    return null;
+  }
 
-  useEffect(() => {
-    if (!loading) {
-      navigate(session ? '/app/profile' : '/app/login');
-    }
-  }, [loading, session]);
+  const session = useRequireAuth();
 
-  return null;
+  if (!session) {
+    return (
+      <Router>
+        <Login default />
+        <Register path="/app/register" />
+        <ForgotPassword path="/app/forgot-password" />
+        <ResetPassword path="/app/reset-password" />
+      </Router>
+    );
+  }
+
+  return (
+    <Router>
+      <Profile default path="/app/profile" />
+      <ResetPassword path="/app/reset-password" />
+    </Router>
+  );
 };
 
 export default App;

@@ -1,15 +1,15 @@
 import { useEffect } from 'react';
 import { navigate } from 'gatsby';
 import { useAuth } from '@/providers/AuthProvider';
+import type { Session } from '@supabase/supabase-js';
 
-export const useRequireAuth = () => {
-  const { session, loading } = useAuth();
+export type RequireAuthResult = Session | undefined;
 
-  useEffect(() => {
-    if (!loading && !session) {
-      navigate('/app/login');
-    }
-  }, [loading, session]);
+export const useRequireAuth = (): RequireAuthResult => {
+  const { session, loading }: { session: Session | null; loading: boolean } = useAuth();
 
-  return { session, loading };
+  if (loading === true) {
+    return undefined;
+  }
+  return session || undefined;
 };

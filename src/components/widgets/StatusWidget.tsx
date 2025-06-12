@@ -1,15 +1,6 @@
 import React from "react";
-import { WidgetBox } from "@/components/ui/WidgetBox";
-import {
-    Text,
-    Flex,
-    Badge,
-    Status as ChakraStatus,
-    IconButton,
-} from "@chakra-ui/react";
-import type { Color } from "@chakra-ui/react";
-import { LuHand, LuMaximize2 } from "react-icons/lu";
-import { Status, StatusValue, Scope, Action, Heading } from "./base/index";
+import { Flex } from "@chakra-ui/react";
+import { Container, Status, StatusValue, Scope, Action, Heading } from "./base/index";
 
 interface StatusWidgetProps {
     title?: string;
@@ -20,7 +11,7 @@ export const StatusWidget: React.FC<StatusWidgetProps> = ({
     title,
     status,
 }) => (
-    <WidgetBox>
+    <Container>
         <Flex gap={1} alignItems="center" justifyContent="space-between">
             <Flex gap={1}>
                 <Scope scope="Project" />
@@ -34,5 +25,5 @@ export const StatusWidget: React.FC<StatusWidgetProps> = ({
         <Flex gap={1}>
             <Action type="participate" aria-label="Participate in discussion" />
         </Flex>
-    </WidgetBox>
+    </Container>
 );

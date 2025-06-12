@@ -3,22 +3,20 @@ import { Box, Button, Center, Heading, Text } from '@chakra-ui/react';
 import { navigate } from 'gatsby';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { supabase } from '@/lib/supabaseClient';
+import type { RequireAuthResult } from '@/hooks/useRequireAuth';
+import type { Session } from '@supabase/supabase-js';
 
 interface RouteProps {
   path?: string;
+  default?: boolean;
 }
 
-const ProfilePage: React.FC<RouteProps> = () => {
-  const { session, loading } = useRequireAuth();
+export const Profile: React.FC<RouteProps> = () => {
+  const session = useRequireAuth();
 
-  if (loading) {
-    return null;
-  }
-  if (!session) {
-    return null;
-  }
+  if (!session) throw new Error('Session should never be undefined here');
 
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     await supabase.auth.signOut();
     navigate('/app/login');
   };
@@ -38,4 +36,3 @@ const ProfilePage: React.FC<RouteProps> = () => {
   );
 };
 
-export default ProfilePage;

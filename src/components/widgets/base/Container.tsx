@@ -1,7 +1,7 @@
 import { Flex, FlexProps } from "@chakra-ui/react";
 import React from "react";
 
-export const WidgetBox = ({ children, ...props }: FlexProps) => (
+export const Container = ({ children, ...props }: FlexProps) => (
     <Flex
         p={3}
         borderRadius="2xl"
