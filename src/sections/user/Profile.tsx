@@ -1,10 +1,8 @@
-import React from 'react';
-import { Box, Button, Center, Heading, Text } from '@chakra-ui/react';
-import { navigate } from 'gatsby';
-import { useRequireAuth } from '@/hooks/useRequireAuth';
-import { supabase } from '@/lib/supabaseClient';
-import type { RequireAuthResult } from '@/hooks/useRequireAuth';
-import type { Session } from '@supabase/supabase-js';
+import React from "react";
+import { Box, Button, Center, Heading, Text } from "@chakra-ui/react";
+import { navigate } from "gatsby";
+import { useSession } from "@/providers/AuthProvider";
+import { supabase } from "@/lib/supabaseClient";
 
 interface RouteProps {
   path?: string;
@@ -12,13 +10,11 @@ interface RouteProps {
 }
 
 export const Profile: React.FC<RouteProps> = () => {
-  const session = useRequireAuth();
-
-  if (!session) throw new Error('Session should never be undefined here');
+  const session = useSession();
 
   const handleLogout = async (): Promise<void> => {
     await supabase.auth.signOut();
-    navigate('/app/login');
+    navigate("/app/login");
   };
 
   return (
@@ -27,7 +23,7 @@ export const Profile: React.FC<RouteProps> = () => {
         <Heading size="lg" mb={4}>
           Profile
         </Heading>
-        <Text>Email: {session.user.email}</Text>
+        <Text>Email: {session?.user?.email}</Text>
         <Button mt={6} colorScheme="green" onClick={handleLogout}>
           Logout
         </Button>
@@ -35,4 +31,3 @@ export const Profile: React.FC<RouteProps> = () => {
     </Center>
   );
 };
-

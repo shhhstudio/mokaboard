@@ -9,7 +9,12 @@ interface AuthContextProps {
 
 const AuthContext = createContext<AuthContextProps>({ session: undefined });
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth: () => AuthContextProps = () => useContext(AuthContext);
+
+export const useSession: () => Session | null | undefined = () => {
+  const { session } = useAuth();
+  return session;
+}
 
 export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [session, setSession] = useState<Session | null | undefined>(undefined);

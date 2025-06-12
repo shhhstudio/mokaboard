@@ -13,7 +13,6 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { BsArrowRight, BsGithub, BsGoogle } from 'react-icons/bs';
-import { navigate } from 'gatsby';
 import { Link } from '@reach/router';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -34,7 +33,6 @@ export const Login: React.FC<RouteProps> = () => {
       setError(error.message);
     } else {
       setError(null);
-      navigate('/app/profile');
     }
   };
 
