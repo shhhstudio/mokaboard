@@ -11,17 +11,23 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
-        "npm:@mdx-js/react@^3.1.0",
-        "npm:@types/node@^20.11.19",
-        "npm:@types/react-dom@^18.2.19",
-        "npm:@types/react@^18.2.55",
-        "npm:gatsby-plugin-mdx@^5.14.1",
+        "npm:@babel/preset-react@^7.27.1",
+        "npm:@chakra-ui/cli@^3.21.0",
+        "npm:@chakra-ui/react@^3.21.0",
+        "npm:@emotion/react@^11.14.0",
+        "npm:@supabase/supabase-js@^2.50.0",
+        "npm:@types/node@^22.15.30",
+        "npm:@types/react-dom@^19.1.6",
+        "npm:@types/react@^19.1.8",
+        "npm:babel-plugin-module-resolver@^5.0.2",
+        "npm:gatsby-plugin-netlify@^5.1.1",
         "npm:gatsby-plugin-sitemap@^6.14.0",
         "npm:gatsby-source-filesystem@^5.14.0",
-        "npm:gatsby@^5.14.1",
+        "npm:gatsby@^5.14.4",
         "npm:react-dom@^18.2.0",
+        "npm:react-icons@^5.5.0",
         "npm:react@^18.2.0",
-        "npm:typescript@^5.3.3"
+        "npm:typescript@^5.8.3"
       ]
     }
   }
