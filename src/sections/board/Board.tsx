@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams, navigate } from "@reach/router";
-import { Box, Button, Heading, Spinner, Text, Flex, SimpleGrid, IconButton } from "@chakra-ui/react";
+import { Box, Button, Heading, Spinner, Text, Flex, SimpleGrid, IconButton, Dialog, Portal, CloseButton } from "@chakra-ui/react";
 import { useBoard } from "@/hooks/useBoard";
 import { StatusWidget, BlankWidget } from "@/components/widgets";
 import { DndContext, closestCenter, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
@@ -9,8 +9,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { LuPen, LuTrash2 } from "react-icons/lu";
 import { LuGripVertical } from "react-icons/lu";
 
-// Remove: import { SegmentedControl } from "@chakra-ui/segmented-control";
-// Add custom SegmentedControl if not available in Chakra UI
 const SegmentedControl = ({ value, onChange, options, size }: { value: string, onChange: (val: string) => void, options: { label: string, value: string }[], size?: string }) => (
     <Flex borderRadius="md" bg="gray.100" p={1} gap={1}>
         {options.map(opt => (
@@ -32,6 +30,28 @@ const SegmentedControl = ({ value, onChange, options, size }: { value: string, o
 export const Board: React.FC = () => {
     const { uuid } = useParams<{ uuid: string }>();
     const { board, error, initialLoading, loading, refetch } = useBoard(uuid || null);
+    const [selectedWidget, setSelectedWidget] = React.useState<any | null>(null);
+
+    // Dialog open state for Chakra v3
+    const [dialogOpen, setDialogOpen] = React.useState(false);
+
+    // Extract widgetId from URL if present
+    const params = useParams<{ uuid: string; widgetId?: string }>();
+    const widgetId = params.widgetId || null;
+
+    // Open modal if widgetId in URL
+    useEffect(() => {
+        if (widgetId && board?.widgets) {
+            const found = board.widgets.find((w: any) => w.id === widgetId);
+            if (found) {
+                setSelectedWidget(found);
+                setDialogOpen(true);
+            }
+        } else {
+            setSelectedWidget(null);
+            setDialogOpen(false);
+        }
+    }, [widgetId, board]);
 
     // Build grid slots from widgets[].boardWidget.order (max 8 slots for 4x2 grid)
     const GRID_SIZE = 8;
@@ -47,7 +67,6 @@ export const Board: React.FC = () => {
 
     // Reorder mode state
     const [mode, setMode] = React.useState<'view' | 'edit'>('view');
-    const [draggingIdx, setDraggingIdx] = React.useState<number | null>(null);
 
     // DnD-kit setup
     const sensors = useSensors(useSensor(PointerSensor));
@@ -60,7 +79,6 @@ export const Board: React.FC = () => {
     const handleDragEnd = async (event: any) => {
         if (mode !== 'edit') return;
         const { active, over } = event;
-        setDraggingIdx(null);
         if (!over || active.id === over.id) return;
         const getIndex = (id: string) => {
             let idx = localSlots.findIndex(w => w && w.id === id);
@@ -181,6 +199,19 @@ export const Board: React.FC = () => {
         }
     };
 
+    // Replace navigate with window.history.pushState for modal open/close
+    const handleWidgetClick = (widget: any) => {
+        window.history.pushState({}, '', `/app/board/${uuid}/${widget.id}`);
+        setSelectedWidget(widget);
+        setDialogOpen(true);
+    };
+
+    const handleModalClose = () => {
+        window.history.pushState({}, '', `/app/board/${uuid}`);
+        setDialogOpen(false);
+        setSelectedWidget(null);
+    };
+
     return (
         <Flex minH="100vh" bg="gray.50" direction="column">
             <Flex as="header" w="100%" bg="white" px={8} py={4} align="center" justify="space-between" boxShadow="sm">
@@ -228,6 +259,8 @@ export const Board: React.FC = () => {
                                                 alignItems="center"
                                                 justifyContent="center"
                                                 position="relative"
+                                                onClick={() => handleWidgetClick(widget)}
+                                                cursor="pointer"
                                             >
                                                 <Box position="relative" w="100%" h="100%">
                                                     <StatusWidget
@@ -277,6 +310,36 @@ export const Board: React.FC = () => {
                     </DndContext>
                 </Box>
             </Flex>
-        </Flex>
+
+            <Dialog.Root open={dialogOpen} size="full" onOpenChange={details => { if (!details.open) handleModalClose(); setDialogOpen(details.open); }} placement="center" motionPreset="slide-in-bottom">
+                <Portal>
+                    <Dialog.Backdrop />
+                    <Dialog.Positioner>
+                        <Dialog.Content>
+                            <Dialog.Header height={12}>
+                                <Dialog.CloseTrigger asChild>
+                                    <CloseButton rounded="full" />
+                                </Dialog.CloseTrigger>
+                            </Dialog.Header>
+                            <Dialog.Body alignContent="center">
+                                <Flex maxWidth="800px" mx="auto" w="100%" gap={6}>
+                                    <StatusWidget
+                                        title={selectedWidget?.title || "Untitled Widget"}
+                                        status={mapStatus(selectedWidget?.status)}
+                                    />
+                                    <Box flexGrow={1} alignContent="center">
+                                        This is a placeholder for additional widget details or actions.
+                                        You can add more content here as needed.
+                                    </Box>
+                                </Flex>
+                            </Dialog.Body>
+                            <Dialog.Footer height={12}>
+
+                            </Dialog.Footer>
+                        </Dialog.Content>
+                    </Dialog.Positioner>
+                </Portal>
+            </Dialog.Root>
+        </Flex >
     );
 };
