@@ -15,6 +15,7 @@ import {
 import { BsArrowRight, BsGithub, BsGoogle } from 'react-icons/bs';
 import { Link } from '@reach/router';
 import { supabase } from '@/lib/supabaseClient';
+import { navigate } from 'gatsby';
 
 interface RouteProps {
   path?: string;
@@ -33,6 +34,7 @@ export const Login: React.FC<RouteProps> = () => {
       setError(error.message);
     } else {
       setError(null);
+      navigate('/app');
     }
   };
 
