@@ -23,6 +23,10 @@ export const Board: React.FC = () => {
         return arr;
     }, [board]); // Only depend on board, not JSON.stringify
 
+    // Reorder mode state
+    const [reorderMode, setReorderMode] = React.useState(false);
+    const [pendingOrder, setPendingOrder] = React.useState<(any | null)[] | null>(null);
+
     // DnD-kit setup
     const sensors = useSensors(useSensor(PointerSensor));
     const [localSlots, setLocalSlots] = React.useState<(any | null)[]>(slots);
@@ -30,8 +34,9 @@ export const Board: React.FC = () => {
         setLocalSlots(slots);
     }, [slots]);
 
-    // Handle drag end
-    const handleDragEnd = async (event: any) => {
+    // Handle drag end (only in reorder mode)
+    const handleDragEnd = (event: any) => {
+        if (!reorderMode) return;
         const { active, over } = event;
         if (!over || active.id === over.id) return;
         const getIndex = (id: string) => {
@@ -46,11 +51,18 @@ export const Board: React.FC = () => {
         if (oldIndex === -1 || newIndex === -1) return;
         const newSlots = arrayMove(localSlots, oldIndex, newIndex);
         setLocalSlots(newSlots);
-        // Persist new order to backend
+        setPendingOrder(newSlots);
+    };
+
+    // Save new order and exit reorder mode
+    const handleSaveOrder = async () => {
+        if (!pendingOrder) {
+            setReorderMode(false);
+            return;
+        }
         try {
             const { updateBoardWidget } = await import("@/hooks/apiWidgets");
-            // Prepare new order: for each widget, update its boardWidget.order
-            const updates = newSlots.map((widget, idx) => {
+            const updates = pendingOrder.map((widget, idx) => {
                 if (widget && widget.boardWidget && widget.boardWidget.order !== idx) {
                     return updateBoardWidget(widget.boardWidget.id, { order: idx });
                 }
@@ -61,22 +73,29 @@ export const Board: React.FC = () => {
         } catch (e) {
             alert("Failed to persist widget order");
         }
+        setReorderMode(false);
+        setPendingOrder(null);
     };
 
     // Sortable widget wrapper
     function DraggableSlot({ widget, idx, children }: { widget: any, idx: number, children: React.ReactNode }) {
         const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
             id: widget?.id ?? `empty-${idx}`,
-            disabled: !widget,
+            disabled: !widget || !reorderMode,
         });
-        const style = {
-            transform: CSS.Transform.toString(transform),
-            transition,
-            zIndex: isDragging ? 2 : 1,
-            opacity: isDragging ? 0.7 : 1,
-        };
         return (
-            <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+            <div
+                ref={setNodeRef}
+                {...(reorderMode ? { ...attributes, ...listeners } : {})}
+                style={{
+                    position: 'relative',
+                    transform: CSS.Transform.toString(transform),
+                    transition,
+                    zIndex: isDragging ? 2 : 1,
+                    opacity: isDragging ? 0.7 : 1,
+                    cursor: reorderMode && widget ? 'grab' : undefined,
+                } as React.CSSProperties}
+            >
                 {children}
             </div>
         );
@@ -156,6 +175,9 @@ export const Board: React.FC = () => {
                 <Heading size="md">{board.title || "Untitled Board"}</Heading>
                 <Flex gap={2} align="center">
                     {loading && <Spinner size="sm" color="blue.500" mr={2} />}
+                    <Button colorScheme={reorderMode ? "green" : "gray"} size="sm" onClick={reorderMode ? handleSaveOrder : () => { setReorderMode(true); setPendingOrder(localSlots); }}>
+                        {reorderMode ? "Save" : "Reorder"}
+                    </Button>
                     <Button colorScheme="blue" size="sm" onClick={() => handleAddWidget()}>+ Add Widget</Button>
                     <Button colorScheme="gray" size="sm" onClick={() => navigate("/app")}>Back</Button>
                 </Flex>
@@ -188,15 +210,16 @@ export const Board: React.FC = () => {
                                                 display="flex"
                                                 alignItems="center"
                                                 justifyContent="center"
+                                                position="relative"
                                             >
                                                 <Box position="relative" w="100%" h="100%">
                                                     <StatusWidget
                                                         title={widget.title || "Untitled Widget"}
                                                         status={mapStatus(widget.status)}
                                                     />
-                                                    <Flex position="absolute" top={2} right={2} gap={1} zIndex={1}>
-                                                        <Button size="xs" mr={1} onClick={() => handleEditWidget(widget)}>Edit</Button>
-                                                        <Button size="xs" colorScheme="red" onClick={() => handleDeleteWidget(widget)}>Delete</Button>
+                                                    <Flex position="absolute" top={2} right={2} gap={1} zIndex={3} pointerEvents="auto">
+                                                        <Button size="xs" mr={1} onClick={e => { e.stopPropagation(); handleEditWidget(widget); }}>Edit</Button>
+                                                        <Button size="xs" colorScheme="red" onClick={e => { e.stopPropagation(); handleDeleteWidget(widget); }}>Delete</Button>
                                                     </Flex>
                                                 </Box>
                                             </Box>
