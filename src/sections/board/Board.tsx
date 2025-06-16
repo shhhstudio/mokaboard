@@ -31,15 +31,36 @@ export const Board: React.FC = () => {
     }, [slots]);
 
     // Handle drag end
-    const handleDragEnd = (event: any) => {
+    const handleDragEnd = async (event: any) => {
         const { active, over } = event;
         if (!over || active.id === over.id) return;
-        const oldIndex = localSlots.findIndex(w => w && w.id === active.id);
-        const newIndex = localSlots.findIndex(w => w && w.id === over.id);
+        const getIndex = (id: string) => {
+            let idx = localSlots.findIndex(w => w && w.id === id);
+            if (idx === -1 && id.startsWith('empty-')) {
+                idx = parseInt(id.replace('empty-', ''), 10);
+            }
+            return idx;
+        };
+        const oldIndex = getIndex(active.id);
+        const newIndex = getIndex(over.id);
         if (oldIndex === -1 || newIndex === -1) return;
         const newSlots = arrayMove(localSlots, oldIndex, newIndex);
         setLocalSlots(newSlots);
-        // TODO: Persist new order to backend if needed
+        // Persist new order to backend
+        try {
+            const { updateBoardWidget } = await import("@/hooks/apiWidgets");
+            // Prepare new order: for each widget, update its boardWidget.order
+            const updates = newSlots.map((widget, idx) => {
+                if (widget && widget.boardWidget && widget.boardWidget.order !== idx) {
+                    return updateBoardWidget(widget.boardWidget.id, { order: idx });
+                }
+                return null;
+            }).filter(Boolean);
+            await Promise.all(updates);
+            await refetch();
+        } catch (e) {
+            alert("Failed to persist widget order");
+        }
     };
 
     // Sortable widget wrapper
@@ -155,7 +176,6 @@ export const Board: React.FC = () => {
                                 gap={[2, 6, 6, 8]}
                                 width="max-content"
                                 marginX="auto"
-                                opacity={loading ? 0.5 : 1}
                                 pointerEvents={loading ? "none" : undefined}
                             >
                                 {localSlots.map((widget, idx) => (
