@@ -5,7 +5,6 @@ export const onCreatePage: GatsbyNode["onCreatePage"] = async ({ page, actions }
 
   if (page.path.match(/^\/app/)) {
     page.matchPath = "/app/*"
-
     createPage(page)
   }
 }
