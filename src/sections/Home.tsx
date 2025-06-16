@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Box, Button, Heading, Spinner, Text, Flex, Input } from "@chakra-ui/react";
+import { Box, Button, Heading, Spinner, Text, Flex } from "@chakra-ui/react";
 import { useSession } from "@/providers/AuthProvider";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { updateBoard, createBoard, deleteBoard } from "@/hooks/apiBoards";
@@ -12,46 +12,7 @@ interface RouteProps {
 export const Home: React.FC<RouteProps> = () => {
     const session = useSession();
     const { workspace, loading, refreshWorkspace } = useWorkspace();
-    const [editingBoardId, setEditingBoardId] = useState<string | null>(null);
-    const [titles, setTitles] = useState<{ [id: string]: string }>({});
     const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
-
-    // Sync board titles for inline editing
-    useEffect(() => {
-        const initialTitles: { [id: string]: string } = {};
-        workspace.spaces?.forEach(space => {
-            space.track?.forEach(track => {
-                track.board?.forEach(board => {
-                    initialTitles[board.id] = board.title || "Untitled Board";
-                });
-            });
-        });
-        setTitles(initialTitles);
-    }, [workspace.spaces]);
-
-    // Inline board title editing handlers
-    const handleTitleClick = (id: string) => setEditingBoardId(id);
-    const handleTitleChange = (id: string, value: string) => setTitles(prev => ({ ...prev, [id]: value }));
-    const handleTitleBlur = async (id: string, oldTitle: string | null) => {
-        setEditingBoardId(null);
-        if (titles[id] !== oldTitle) {
-            try {
-                await updateBoard(id, { title: titles[id] });
-                refreshWorkspace();
-            } catch { }
-        }
-    };
-    const handleTitleKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>, id: string, oldTitle: string | null) => {
-        if (e.key === "Enter") {
-            setEditingBoardId(null);
-            if (titles[id] !== oldTitle) {
-                try {
-                    await updateBoard(id, { title: titles[id] });
-                    refreshWorkspace();
-                } catch { }
-            }
-        }
-    };
 
     // Find selected track object
     const selectedTrack = React.useMemo(() => {
@@ -148,29 +109,11 @@ export const Home: React.FC<RouteProps> = () => {
                                         return new Date(a.date).getTime() - new Date(b.date).getTime();
                                     })
                                     .map(board => (
-                                        <Flex key={board.id} align="center" mb={1} pl={4}>
+                                        <Flex key={board.id} align="center" mb={1} pl={4} style={{ cursor: 'pointer' }} onClick={() => window.location.href = `/app/board/${board.id}`}>
                                             <Box mr={2}>
-                                                {editingBoardId === board.id ? (
-                                                    <Input
-                                                        value={titles[board.id] || "Untitled Board"}
-                                                        onChange={e => handleTitleChange(board.id, e.target.value)}
-                                                        onBlur={() => handleTitleBlur(board.id, board.title)}
-                                                        onKeyDown={e => handleTitleKeyDown(e, board.id, board.title)}
-                                                        autoFocus
-                                                        fontSize="md"
-                                                        fontWeight={600}
-                                                        mr={2}
-                                                    />
-                                                ) : (
-                                                    <Text
-                                                        fontWeight="medium"
-                                                        fontSize="md"
-                                                        cursor="pointer"
-                                                        onClick={() => handleTitleClick(board.id)}
-                                                    >
-                                                        {board.title || "Untitled Board"}
-                                                    </Text>
-                                                )}
+                                                <Text fontWeight="medium" fontSize="md">
+                                                    {board.title || "Untitled Board"}
+                                                </Text>
                                                 {board.description && (
                                                     <Text fontSize="sm" color="gray.500">{board.description}</Text>
                                                 )}
@@ -178,7 +121,8 @@ export const Home: React.FC<RouteProps> = () => {
                                             <Text fontSize="sm" color="gray.400" mr={2}>
                                                 {board.date ? new Date(board.date).toLocaleDateString() : "No date"}
                                             </Text>
-                                            <Button colorScheme="red" size="xs" onClick={async () => {
+                                            <Button colorScheme="red" size="xs" onClick={async (e) => {
+                                                e.stopPropagation();
                                                 try {
                                                     await deleteBoard(board.id);
                                                     refreshWorkspace();

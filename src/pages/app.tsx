@@ -9,6 +9,7 @@ import {
 } from "@/sections/user";
 import { useSession } from "@/providers/AuthProvider";
 import { Home } from "@/sections/Home";
+import { Board } from "@/sections/board";
 import type { PageProps } from "gatsby";
 
 const App: React.FC<PageProps> = () => {
@@ -36,6 +37,8 @@ const App: React.FC<PageProps> = () => {
     <Router>
       <Profile path="/app/profile" />
       <ResetPassword path="/app/reset-password" />
+      {/* @ts-ignore: dynamic route import for reach router */}
+      <Board path="/app/board/:uuid" />
       <Home default path="/app" />
     </Router>
   );
