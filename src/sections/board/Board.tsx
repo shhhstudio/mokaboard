@@ -1,11 +1,33 @@
 import React from "react";
 import { useParams, navigate } from "@reach/router";
-import { Box, Button, Heading, Spinner, Text, Flex, SimpleGrid } from "@chakra-ui/react";
+import { Box, Button, Heading, Spinner, Text, Flex, SimpleGrid, IconButton } from "@chakra-ui/react";
 import { useBoard } from "@/hooks/useBoard";
 import { StatusWidget, BlankWidget } from "@/components/widgets";
 import { DndContext, closestCenter, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { LuPen, LuTrash2 } from "react-icons/lu";
+import { LuGripVertical } from "react-icons/lu";
+
+// Remove: import { SegmentedControl } from "@chakra-ui/segmented-control";
+// Add custom SegmentedControl if not available in Chakra UI
+const SegmentedControl = ({ value, onChange, options, size }: { value: string, onChange: (val: string) => void, options: { label: string, value: string }[], size?: string }) => (
+    <Flex borderRadius="md" bg="gray.100" p={1} gap={1}>
+        {options.map(opt => (
+            <Button
+                key={opt.value}
+                size={size as any}
+                variant={value === opt.value ? "solid" : "ghost"}
+                colorScheme={value === opt.value ? "blue" : undefined}
+                onClick={() => onChange(opt.value)}
+                fontWeight={value === opt.value ? 700 : 400}
+                borderRadius="md"
+            >
+                {opt.label}
+            </Button>
+        ))}
+    </Flex>
+);
 
 export const Board: React.FC = () => {
     const { uuid } = useParams<{ uuid: string }>();
@@ -24,8 +46,8 @@ export const Board: React.FC = () => {
     }, [board]); // Only depend on board, not JSON.stringify
 
     // Reorder mode state
-    const [reorderMode, setReorderMode] = React.useState(false);
-    const [pendingOrder, setPendingOrder] = React.useState<(any | null)[] | null>(null);
+    const [mode, setMode] = React.useState<'view' | 'edit'>('view');
+    const [draggingIdx, setDraggingIdx] = React.useState<number | null>(null);
 
     // DnD-kit setup
     const sensors = useSensors(useSensor(PointerSensor));
@@ -35,9 +57,10 @@ export const Board: React.FC = () => {
     }, [slots]);
 
     // Handle drag end (only in reorder mode)
-    const handleDragEnd = (event: any) => {
-        if (!reorderMode) return;
+    const handleDragEnd = async (event: any) => {
+        if (mode !== 'edit') return;
         const { active, over } = event;
+        setDraggingIdx(null);
         if (!over || active.id === over.id) return;
         const getIndex = (id: string) => {
             let idx = localSlots.findIndex(w => w && w.id === id);
@@ -51,18 +74,9 @@ export const Board: React.FC = () => {
         if (oldIndex === -1 || newIndex === -1) return;
         const newSlots = arrayMove(localSlots, oldIndex, newIndex);
         setLocalSlots(newSlots);
-        setPendingOrder(newSlots);
-    };
-
-    // Save new order and exit reorder mode
-    const handleSaveOrder = async () => {
-        if (!pendingOrder) {
-            setReorderMode(false);
-            return;
-        }
         try {
             const { updateBoardWidget } = await import("@/hooks/apiWidgets");
-            const updates = pendingOrder.map((widget, idx) => {
+            const updates = newSlots.map((widget, idx) => {
                 if (widget && widget.boardWidget && widget.boardWidget.order !== idx) {
                     return updateBoardWidget(widget.boardWidget.id, { order: idx });
                 }
@@ -73,30 +87,28 @@ export const Board: React.FC = () => {
         } catch (e) {
             alert("Failed to persist widget order");
         }
-        setReorderMode(false);
-        setPendingOrder(null);
     };
 
     // Sortable widget wrapper
-    function DraggableSlot({ widget, idx, children }: { widget: any, idx: number, children: React.ReactNode }) {
+    function DraggableSlot({ widget, idx, children }: { widget: any, idx: number, children: (args: { listeners: any }) => React.ReactNode }) {
         const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
             id: widget?.id ?? `empty-${idx}`,
-            disabled: !widget || !reorderMode,
+            disabled: !widget || mode !== 'edit',
         });
         return (
             <div
                 ref={setNodeRef}
-                {...(reorderMode ? { ...attributes, ...listeners } : {})}
+                {...attributes}
                 style={{
                     position: 'relative',
                     transform: CSS.Transform.toString(transform),
                     transition,
                     zIndex: isDragging ? 2 : 1,
                     opacity: isDragging ? 0.7 : 1,
-                    cursor: reorderMode && widget ? 'grab' : undefined,
+                    cursor: mode === 'edit' && widget ? 'grab' : undefined,
                 } as React.CSSProperties}
             >
-                {children}
+                {children({ listeners })}
             </div>
         );
     }
@@ -175,10 +187,15 @@ export const Board: React.FC = () => {
                 <Heading size="md">{board.title || "Untitled Board"}</Heading>
                 <Flex gap={2} align="center">
                     {loading && <Spinner size="sm" color="blue.500" mr={2} />}
-                    <Button colorScheme={reorderMode ? "green" : "gray"} size="sm" onClick={reorderMode ? handleSaveOrder : () => { setReorderMode(true); setPendingOrder(localSlots); }}>
-                        {reorderMode ? "Save" : "Reorder"}
-                    </Button>
-                    <Button colorScheme="blue" size="sm" onClick={() => handleAddWidget()}>+ Add Widget</Button>
+                    <SegmentedControl
+                        value={mode}
+                        onChange={(val: string) => setMode(val as 'view' | 'edit')}
+                        options={[
+                            { label: 'View', value: 'view' },
+                            { label: 'Edit', value: 'edit' },
+                        ]}
+                        size="sm"
+                    />
                     <Button colorScheme="gray" size="sm" onClick={() => navigate("/app")}>Back</Button>
                 </Flex>
             </Flex>
@@ -202,7 +219,7 @@ export const Board: React.FC = () => {
                             >
                                 {localSlots.map((widget, idx) => (
                                     <DraggableSlot key={widget?.id ?? `empty-${idx}`} widget={widget} idx={idx}>
-                                        {widget ? (
+                                        {({ listeners }) => widget ? (
                                             <Box
                                                 minH="120px"
                                                 bg="white"
@@ -217,10 +234,37 @@ export const Board: React.FC = () => {
                                                         title={widget.title || "Untitled Widget"}
                                                         status={mapStatus(widget.status)}
                                                     />
-                                                    <Flex position="absolute" top={2} right={2} gap={1} zIndex={3} pointerEvents="auto">
-                                                        <Button size="xs" mr={1} onClick={e => { e.stopPropagation(); handleEditWidget(widget); }}>Edit</Button>
-                                                        <Button size="xs" colorScheme="red" onClick={e => { e.stopPropagation(); handleDeleteWidget(widget); }}>Delete</Button>
-                                                    </Flex>
+                                                    {mode === 'edit' && (
+                                                        <Flex position="absolute" bottom={2} right={2} gap={1} zIndex={3} pointerEvents="auto">
+                                                            <IconButton
+                                                                aria-label="Reorder"
+                                                                size="2xs"
+                                                                variant="solid"
+                                                                rounded="full"
+                                                                {...listeners}
+                                                            >
+                                                                <LuGripVertical size={12} />
+                                                            </IconButton>
+                                                            <IconButton
+                                                                aria-label="Edit"
+                                                                size="2xs"
+                                                                variant="solid"
+                                                                rounded="full"
+                                                                onClick={e => { e.stopPropagation(); handleEditWidget(widget); }}
+                                                            >
+                                                                <LuPen size={8} />
+                                                            </IconButton>
+                                                            <IconButton
+                                                                aria-label="Delete"
+                                                                size="2xs"
+                                                                rounded="full"
+                                                                variant="solid"
+                                                                onClick={e => { e.stopPropagation(); handleDeleteWidget(widget); }}
+                                                            >
+                                                                <LuTrash2 size={8} />
+                                                            </IconButton>
+                                                        </Flex>
+                                                    )}
                                                 </Box>
                                             </Box>
                                         ) : (

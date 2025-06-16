@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Box, Button, Heading, Spinner, Text, Flex } from "@chakra-ui/react";
 import { useSession } from "@/providers/AuthProvider";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { updateBoard, createBoard, deleteBoard } from "@/hooks/apiBoards";
+import { createBoard, deleteBoard } from "@/hooks/apiBoards";
 
 interface RouteProps {
     path?: string;
