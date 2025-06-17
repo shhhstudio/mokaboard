@@ -46,7 +46,7 @@ const App: React.FC<PageProps> = () => {
 
   // Add RouteProps to Board for reach router
   const BoardWithPath = (props: any) => <Board {...props} />;
-
+  console.log("App Router Render");
   return (
     <Router>
       <Profile path="/app/profile" />
