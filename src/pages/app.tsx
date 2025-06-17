@@ -36,6 +36,7 @@ const App: React.FC<PageProps> = () => {
   // Add RouteProps to Board for reach router
   const BoardWithPath = (props: any) => <Board {...props} />;
 
+  console.log("App render", session);
   return (
     <Router>
       <Profile path="/app/profile" />
@@ -45,7 +46,7 @@ const App: React.FC<PageProps> = () => {
       <BoardWithPath path="/app/board/:uuid" />
       <Home default path="/app" />
     </Router>
-  );
+  
 };
 
 export default App;

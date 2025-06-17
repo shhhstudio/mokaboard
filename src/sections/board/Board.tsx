@@ -1,42 +1,24 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo, useCallback } from "react";
 import { useParams, navigate } from "@reach/router";
 import { Box, Button, Heading, Spinner, Text, Flex, SimpleGrid, IconButton, Dialog, Portal, CloseButton, Textarea } from "@chakra-ui/react";
 import { useBoard } from "@/hooks/useBoard";
+import { updateWidget } from "@/hooks/apiWidgets";
 import { StatusWidget, BlankWidget } from "@/components/widgets";
 import { DndContext, closestCenter, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
 import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { LuPen, LuTrash2 } from "react-icons/lu";
+import { LuTrash2 } from "react-icons/lu";
 import { LuGripVertical } from "react-icons/lu";
+import { Widget } from "@/types";
 
-const SegmentedControl = ({ value, onChange, options, size }: { value: string, onChange: (val: string) => void, options: { label: string, value: string }[], size?: string }) => (
-    <Flex borderRadius="md" bg="gray.100" p={1} gap={1}>
-        {options.map(opt => (
-            <Button
-                key={opt.value}
-                size={size as any}
-                variant={value === opt.value ? "solid" : "ghost"}
-                colorScheme={value === opt.value ? "blue" : undefined}
-                onClick={() => onChange(opt.value)}
-                fontWeight={value === opt.value ? 700 : 400}
-                borderRadius="md"
-            >
-                {opt.label}
-            </Button>
-        ))}
-    </Flex>
-);
 
 export const Board: React.FC = () => {
     const { uuid } = useParams<{ uuid: string }>();
     const { board, error, initialLoading, loading, refetch } = useBoard(uuid || null);
     const [selectedWidget, setSelectedWidget] = React.useState<any | null>(null);
     const [dialogOpen, setDialogOpen] = React.useState(false);
-    const [mode, setMode] = React.useState<'view' | 'edit'>('view');
     const [jsonValue, setJsonValue] = React.useState<string>("");
     const [jsonError, setJsonError] = React.useState<string | null>(null);
-
-    console.log("Board component rendered with board:", board);
 
     // Extract widgetId from URL if present
     const params = useParams<{ uuid: string; widgetId?: string }>();
@@ -89,9 +71,8 @@ export const Board: React.FC = () => {
         }
     }, [selectedWidget, dialogOpen]);
 
-    // Handle drag end (only in reorder mode)
+    // Handle drag end (always enabled now)
     const handleDragEnd = async (event: any) => {
-        if (mode !== 'edit') return;
         const { active, over } = event;
         if (!over || active.id === over.id) return;
         const getIndex = (id: string) => {
@@ -125,7 +106,7 @@ export const Board: React.FC = () => {
     function DraggableSlot({ widget, idx, children }: { widget: any, idx: number, children: (args: { listeners: any }) => React.ReactNode }) {
         const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
             id: widget?.id ?? `empty-${idx}`,
-            disabled: !widget || mode !== 'edit',
+            disabled: !widget,
         });
         return (
             <div
@@ -137,13 +118,30 @@ export const Board: React.FC = () => {
                     transition,
                     zIndex: isDragging ? 2 : 1,
                     opacity: isDragging ? 0.7 : 1,
-                    cursor: mode === 'edit' && widget ? 'grab' : undefined,
+                    cursor: widget ? 'grab' : undefined,
                 } as React.CSSProperties}
             >
                 {children({ listeners })}
             </div>
         );
     }
+
+
+
+    // Memoize the onChange handler for each widget
+    const widgetOnChangeMap = useMemo(() => {
+        const map = new Map<string, (changes: Partial<Widget>) => Promise<void>>();
+        (board?.widgets || []).forEach((widget: Widget) => {
+            map.set(
+                widget.id,
+                async (changes: Partial<Widget>) => {
+                    await updateWidget(widget.id, changes);
+                    await refetch();
+                }
+            );
+        });
+        return map;
+    }, [board, refetch]);
 
     // Show spinner for initial board load only
     if (initialLoading) return <Flex minH="100vh" align="center" justify="center"><Spinner size="xl" /></Flex>;
@@ -154,14 +152,6 @@ export const Board: React.FC = () => {
         </Flex>
     );
 
-    // Helper to map widget.status to StatusValue
-    const mapStatus = (status: string | null | undefined): "success" | "warning" | "error" | "info" | "none" => {
-        if (!status) return "none";
-        if (["success", "on_track"].includes(status)) return "success";
-        if (["warning", "at_risk"].includes(status)) return "warning";
-        if (["error", "fail"].includes(status)) return "error";
-        return "none";
-    };
 
     // Add widget handler
     const handleAddWidget = async (order?: number) => {
@@ -175,6 +165,7 @@ export const Board: React.FC = () => {
                 type: "kpi",
                 status: null,
                 value: {},
+                scopes: [],
             });
             await addWidgetToBoard({
                 board_id: board!.id,
@@ -184,19 +175,6 @@ export const Board: React.FC = () => {
             await refetch();
         } catch {
             alert("Failed to add widget");
-        }
-    };
-
-    // Edit widget handler
-    const handleEditWidget = async (widget: any) => {
-        try {
-            const newTitle = window.prompt("Edit widget title", widget.title ?? undefined);
-            if (typeof newTitle !== "string" || !newTitle || newTitle === widget.title) return;
-            const { updateWidget } = await import("@/hooks/apiWidgets");
-            await updateWidget(widget.id, { title: newTitle });
-            await refetch();
-        } catch {
-            alert("Failed to update widget");
         }
     };
 
@@ -215,9 +193,9 @@ export const Board: React.FC = () => {
 
     // Replace navigate with window.history.pushState for modal open/close
     const handleWidgetClick = (widget: any) => {
-        window.history.pushState({}, '', `/app/board/${uuid}/${widget.id}`);
+        /*window.history.pushState({}, '', `/app/board/${uuid}/${widget.id}`);
         setSelectedWidget(widget);
-        setDialogOpen(true);
+        setDialogOpen(true);*/
     };
 
     const handleModalClose = () => {
@@ -244,21 +222,14 @@ export const Board: React.FC = () => {
         }
     };
 
+    console.log("rerender ? ", loading)
+
     return (
         <Flex minH="100vh" bg="gray.50" direction="column">
             <Flex as="header" w="100%" bg="white" px={8} py={4} align="center" justify="space-between" boxShadow="sm">
                 <Heading size="md">{board.title || "Untitled Board"}</Heading>
                 <Flex gap={2} align="center">
                     {loading && <Spinner size="sm" color="blue.500" mr={2} />}
-                    <SegmentedControl
-                        value={mode}
-                        onChange={(val: string) => setMode(val as 'view' | 'edit')}
-                        options={[
-                            { label: 'View', value: 'view' },
-                            { label: 'Edit', value: 'edit' },
-                        ]}
-                        size="sm"
-                    />
                     <Button colorScheme="gray" size="sm" onClick={() => navigate("/app")}>Back</Button>
                 </Flex>
             </Flex>
@@ -296,41 +267,29 @@ export const Board: React.FC = () => {
                                             >
                                                 <Box position="relative" w="100%" h="100%">
                                                     <StatusWidget
-                                                        title={widget.title || "Untitled Widget"}
-                                                        status={mapStatus(widget.status)}
-                                                        scopes={widget.widget_tag.map((tag: any) => tag.tag.name)}
+                                                        widget={widget}
+                                                        onChange={widgetOnChangeMap.get(widget.id)}
                                                     />
-                                                    {mode === 'edit' && (
-                                                        <Flex position="absolute" bottom={2} right={2} gap={1} zIndex={3} pointerEvents="auto">
-                                                            <IconButton
-                                                                aria-label="Reorder"
-                                                                size="2xs"
-                                                                variant="solid"
-                                                                rounded="full"
-                                                                {...listeners}
-                                                            >
-                                                                <LuGripVertical size={12} />
-                                                            </IconButton>
-                                                            <IconButton
-                                                                aria-label="Edit"
-                                                                size="2xs"
-                                                                variant="solid"
-                                                                rounded="full"
-                                                                onClick={e => { e.stopPropagation(); handleEditWidget(widget); }}
-                                                            >
-                                                                <LuPen size={8} />
-                                                            </IconButton>
-                                                            <IconButton
-                                                                aria-label="Delete"
-                                                                size="2xs"
-                                                                rounded="full"
-                                                                variant="solid"
-                                                                onClick={e => { e.stopPropagation(); handleDeleteWidget(widget); }}
-                                                            >
-                                                                <LuTrash2 size={8} />
-                                                            </IconButton>
-                                                        </Flex>
-                                                    )}
+                                                    <Flex position="absolute" bottom={2} right={2} gap={1} zIndex={3} pointerEvents="auto">
+                                                        <IconButton
+                                                            aria-label="Reorder"
+                                                            size="2xs"
+                                                            variant="solid"
+                                                            rounded="full"
+                                                            {...listeners}
+                                                        >
+                                                            <LuGripVertical size={12} />
+                                                        </IconButton>
+                                                        <IconButton
+                                                            aria-label="Delete"
+                                                            size="2xs"
+                                                            rounded="full"
+                                                            variant="solid"
+                                                            onClick={e => { e.stopPropagation(); handleDeleteWidget(widget); }}
+                                                        >
+                                                            <LuTrash2 size={8} />
+                                                        </IconButton>
+                                                    </Flex>
                                                 </Box>
                                             </Box>
                                         ) : (
@@ -357,28 +316,21 @@ export const Board: React.FC = () => {
                             <Dialog.Body alignContent="center">
                                 <Flex maxWidth="800px" mx="auto" w="100%" gap={6}>
                                     <StatusWidget
-                                        title={selectedWidget?.title || "Untitled Widget"}
-                                        status={mapStatus(selectedWidget?.status)}
+                                        widget={selectedWidget}
                                     />
                                     <Box flexGrow={1} alignContent="center">
-                                        {mode === 'edit' && selectedWidget ? (
-                                            <Box>
-                                                <Textarea
-                                                    variant="outline"
-                                                    minH="200px"
-                                                    value={jsonValue}
-                                                    onChange={e => setJsonValue(e.target.value)}
-                                                    fontFamily="mono"
-                                                    placeholder="Edit widget JSON data"
-                                                />
-                                                {jsonError && <Text color="red.500" fontSize="sm" mt={2}>{jsonError}</Text>}
-                                                <Button mt={2} colorScheme="blue" size="sm" onClick={handleSaveJson}>Save JSON</Button>
-                                            </Box>
-                                        ) : (
-                                            <Box>
-                                                ...
-                                            </Box>
-                                        )}
+                                        <Box>
+                                            <Textarea
+                                                variant="outline"
+                                                minH="200px"
+                                                value={jsonValue}
+                                                onChange={e => setJsonValue(e.target.value)}
+                                                fontFamily="mono"
+                                                placeholder="Edit widget JSON data"
+                                            />
+                                            {jsonError && <Text color="red.500" fontSize="sm" mt={2}>{jsonError}</Text>}
+                                            <Button mt={2} colorScheme="blue" size="sm" onClick={handleSaveJson}>Save JSON</Button>
+                                        </Box>
                                     </Box>
                                 </Flex>
                             </Dialog.Body>

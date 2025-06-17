@@ -18,7 +18,7 @@ export const useSession: () => Session | null | undefined = () => {
 
 export const AuthProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
-
+  console.log("AuthProvider render", session);
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);

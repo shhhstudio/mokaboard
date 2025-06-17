@@ -13,6 +13,7 @@ export function useBoard(boardId: string | null) {
     const [loading, setLoading] = useState(true);
 
     const fetchBoard = useCallback(async (isInitial = false) => {
+        console.log("fetch fecth", boardId, isInitial);
         if (!boardId) {
             setBoard(null);
             setInitialLoading(false);
@@ -55,17 +56,21 @@ export function useBoard(boardId: string | null) {
         setBoard({ ...data, widgets });
         setInitialLoading(false);
         setLoading(false);
-    }, [boardId]);
+    }, []);
 
     useEffect(() => {
+        console.log("useEffect fetchBoard", boardId);
         fetchBoard(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [fetchBoard]);
 
     // Refetch for actions (not initial load)
     const refetch = useCallback(async () => {
+        console.log("useCallback fetchBoard", boardId);
         await fetchBoard(false);
     }, [fetchBoard]);
+
+    console.log("rerender useBoard")
 
     return { board, error, initialLoading, loading, refetch };
 }
