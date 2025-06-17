@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams, navigate } from "@reach/router";
-import { Box, Button, Heading, Spinner, Text, Flex, SimpleGrid, IconButton } from "@chakra-ui/react";
+import { Box, Button, Heading, Spinner, Text, Flex, SimpleGrid, IconButton, Dialog, Portal, CloseButton, Textarea } from "@chakra-ui/react";
 import { useBoard } from "@/hooks/useBoard";
 import { StatusWidget, BlankWidget } from "@/components/widgets";
 import { DndContext, closestCenter, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
@@ -9,8 +9,6 @@ import { CSS } from '@dnd-kit/utilities';
 import { LuPen, LuTrash2 } from "react-icons/lu";
 import { LuGripVertical } from "react-icons/lu";
 
-// Remove: import { SegmentedControl } from "@chakra-ui/segmented-control";
-// Add custom SegmentedControl if not available in Chakra UI
 const SegmentedControl = ({ value, onChange, options, size }: { value: string, onChange: (val: string) => void, options: { label: string, value: string }[], size?: string }) => (
     <Flex borderRadius="md" bg="gray.100" p={1} gap={1}>
         {options.map(opt => (
@@ -32,6 +30,17 @@ const SegmentedControl = ({ value, onChange, options, size }: { value: string, o
 export const Board: React.FC = () => {
     const { uuid } = useParams<{ uuid: string }>();
     const { board, error, initialLoading, loading, refetch } = useBoard(uuid || null);
+    const [selectedWidget, setSelectedWidget] = React.useState<any | null>(null);
+    const [dialogOpen, setDialogOpen] = React.useState(false);
+    const [mode, setMode] = React.useState<'view' | 'edit'>('view');
+    const [jsonValue, setJsonValue] = React.useState<string>("");
+    const [jsonError, setJsonError] = React.useState<string | null>(null);
+
+    console.log("Board component rendered with board:", board);
+
+    // Extract widgetId from URL if present
+    const params = useParams<{ uuid: string; widgetId?: string }>();
+    const widgetId = params.widgetId || null;
 
     // Build grid slots from widgets[].boardWidget.order (max 8 slots for 4x2 grid)
     const GRID_SIZE = 8;
@@ -45,10 +54,6 @@ export const Board: React.FC = () => {
         return arr;
     }, [board]); // Only depend on board, not JSON.stringify
 
-    // Reorder mode state
-    const [mode, setMode] = React.useState<'view' | 'edit'>('view');
-    const [draggingIdx, setDraggingIdx] = React.useState<number | null>(null);
-
     // DnD-kit setup
     const sensors = useSensors(useSensor(PointerSensor));
     const [localSlots, setLocalSlots] = React.useState<(any | null)[]>(slots);
@@ -56,11 +61,38 @@ export const Board: React.FC = () => {
         setLocalSlots(slots);
     }, [slots]);
 
+    // Open modal if widgetId in URL
+    useEffect(() => {
+        if (widgetId && board?.widgets) {
+            const found = board.widgets.find((w: any) => w.id === widgetId);
+            if (found) {
+                setSelectedWidget(found);
+                setDialogOpen(true);
+            }
+        } else {
+            setSelectedWidget(null);
+            setDialogOpen(false);
+        }
+    }, [widgetId, board]);
+
+    // Sync JSON editor with only editable widget properties when modal opens or widget changes
+    React.useEffect(() => {
+        if (selectedWidget && dialogOpen) {
+            const editable = {
+                type: selectedWidget.type,
+                title: selectedWidget.title,
+                value: selectedWidget.value,
+                status: selectedWidget.status,
+            };
+            setJsonValue(JSON.stringify(editable, null, 2));
+            setJsonError(null);
+        }
+    }, [selectedWidget, dialogOpen]);
+
     // Handle drag end (only in reorder mode)
     const handleDragEnd = async (event: any) => {
         if (mode !== 'edit') return;
         const { active, over } = event;
-        setDraggingIdx(null);
         if (!over || active.id === over.id) return;
         const getIndex = (id: string) => {
             let idx = localSlots.findIndex(w => w && w.id === id);
@@ -123,12 +155,12 @@ export const Board: React.FC = () => {
     );
 
     // Helper to map widget.status to StatusValue
-    const mapStatus = (status: string | null | undefined): "success" | "warning" | "error" | "info" => {
-        if (!status) return "info";
+    const mapStatus = (status: string | null | undefined): "success" | "warning" | "error" | "info" | "none" => {
+        if (!status) return "none";
         if (["success", "on_track"].includes(status)) return "success";
         if (["warning", "at_risk"].includes(status)) return "warning";
         if (["error", "fail"].includes(status)) return "error";
-        return "info";
+        return "none";
     };
 
     // Add widget handler
@@ -181,6 +213,37 @@ export const Board: React.FC = () => {
         }
     };
 
+    // Replace navigate with window.history.pushState for modal open/close
+    const handleWidgetClick = (widget: any) => {
+        window.history.pushState({}, '', `/app/board/${uuid}/${widget.id}`);
+        setSelectedWidget(widget);
+        setDialogOpen(true);
+    };
+
+    const handleModalClose = () => {
+        window.history.pushState({}, '', `/app/board/${uuid}`);
+        setDialogOpen(false);
+        setSelectedWidget(null);
+    };
+
+    // Save handler for JSON editor (update only editable widget fields)
+    const handleSaveJson = async () => {
+        try {
+            const parsed = JSON.parse(jsonValue);
+            setJsonError(null);
+            const { updateWidget } = await import("@/hooks/apiWidgets");
+            await updateWidget(selectedWidget.id, {
+                type: parsed.type,
+                title: parsed.title,
+                value: parsed.value,
+                status: parsed.status,
+            });
+            await refetch();
+        } catch (e: any) {
+            setJsonError("Invalid JSON: " + (e?.message || ""));
+        }
+    };
+
     return (
         <Flex minH="100vh" bg="gray.50" direction="column">
             <Flex as="header" w="100%" bg="white" px={8} py={4} align="center" justify="space-between" boxShadow="sm">
@@ -228,11 +291,14 @@ export const Board: React.FC = () => {
                                                 alignItems="center"
                                                 justifyContent="center"
                                                 position="relative"
+                                                onClick={() => handleWidgetClick(widget)}
+                                                cursor="pointer"
                                             >
                                                 <Box position="relative" w="100%" h="100%">
                                                     <StatusWidget
                                                         title={widget.title || "Untitled Widget"}
                                                         status={mapStatus(widget.status)}
+                                                        scopes={widget.widget_tag.map((tag: any) => tag.tag.name)}
                                                     />
                                                     {mode === 'edit' && (
                                                         <Flex position="absolute" bottom={2} right={2} gap={1} zIndex={3} pointerEvents="auto">
@@ -277,6 +343,52 @@ export const Board: React.FC = () => {
                     </DndContext>
                 </Box>
             </Flex>
-        </Flex>
+
+            <Dialog.Root open={dialogOpen} size="full" onOpenChange={details => { if (!details.open) handleModalClose(); setDialogOpen(details.open); }} placement="center" motionPreset="none">
+                <Portal>
+                    <Dialog.Backdrop />
+                    <Dialog.Positioner>
+                        <Dialog.Content>
+                            <Dialog.Header height={12}>
+                                <Dialog.CloseTrigger asChild>
+                                    <CloseButton rounded="full" />
+                                </Dialog.CloseTrigger>
+                            </Dialog.Header>
+                            <Dialog.Body alignContent="center">
+                                <Flex maxWidth="800px" mx="auto" w="100%" gap={6}>
+                                    <StatusWidget
+                                        title={selectedWidget?.title || "Untitled Widget"}
+                                        status={mapStatus(selectedWidget?.status)}
+                                    />
+                                    <Box flexGrow={1} alignContent="center">
+                                        {mode === 'edit' && selectedWidget ? (
+                                            <Box>
+                                                <Textarea
+                                                    variant="outline"
+                                                    minH="200px"
+                                                    value={jsonValue}
+                                                    onChange={e => setJsonValue(e.target.value)}
+                                                    fontFamily="mono"
+                                                    placeholder="Edit widget JSON data"
+                                                />
+                                                {jsonError && <Text color="red.500" fontSize="sm" mt={2}>{jsonError}</Text>}
+                                                <Button mt={2} colorScheme="blue" size="sm" onClick={handleSaveJson}>Save JSON</Button>
+                                            </Box>
+                                        ) : (
+                                            <Box>
+                                                ...
+                                            </Box>
+                                        )}
+                                    </Box>
+                                </Flex>
+                            </Dialog.Body>
+                            <Dialog.Footer height={12}>
+
+                            </Dialog.Footer>
+                        </Dialog.Content>
+                    </Dialog.Positioner>
+                </Portal>
+            </Dialog.Root>
+        </Flex >
     );
 };

@@ -55,3 +55,20 @@ export interface BoardWidget {
   widget_id: UUID;
   order: number;
 }
+
+export interface Tag {
+  id: UUID;
+  created_at: string;
+  space_id: UUID;
+  name: string;
+  label: string | null;
+  color: string | null;
+  category: string | null;
+  is_global: boolean;
+}
+
+export interface WidgetTag {
+  id: number;
+  widget_id: UUID;
+  tag_id: UUID;
+}

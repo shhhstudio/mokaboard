@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import type { Board, Widget, BoardWidget } from "@/types";
+import type { Board, Widget, BoardWidget, Tag } from "@/types";
 
 export interface BoardWithWidgets extends Board {
     widgets: Array<Widget & { boardWidget: BoardWidget }>;
@@ -26,7 +26,7 @@ export function useBoard(boardId: string | null) {
         setLoading(true);
         const { data, error } = await supabase
             .from("board")
-            .select(`*, board_widget:board_widget(*, widget:widget(*))`)
+            .select(`*, board_widget:board_widget(*, widget:widget(*, widget_tag:widget_tag(tag(*))))`)
             .eq("id", boardId)
             .single();
         if (error || !data) {
@@ -38,16 +38,20 @@ export function useBoard(boardId: string | null) {
             setLoading(false);
             return;
         }
-        const widgets: BoardWithWidgets["widgets"] = (data.board_widget || []).map((bw: any) => ({
-            ...bw.widget,
-            boardWidget: {
-                id: bw.id,
-                created_at: bw.created_at,
-                board_id: bw.board_id,
-                widget_id: bw.widget_id,
-                order: bw.order,
-            },
-        }));
+        const widgets: BoardWithWidgets["widgets"] = (data.board_widget || []).map((bw: any) => {
+            const tags = (bw.widget.widget_tag || []).map((wt: any) => wt.tag);
+            return {
+                ...bw.widget,
+                boardWidget: {
+                    id: bw.id,
+                    created_at: bw.created_at,
+                    board_id: bw.board_id,
+                    widget_id: bw.widget_id,
+                    order: bw.order,
+                },
+                tags,
+            };
+        });
         setBoard({ ...data, widgets });
         setInitialLoading(false);
         setLoading(false);

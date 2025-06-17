@@ -33,12 +33,16 @@ const App: React.FC<PageProps> = () => {
     );
   }
 
+  // Add RouteProps to Board for reach router
+  const BoardWithPath = (props: any) => <Board {...props} />;
+
   return (
     <Router>
       <Profile path="/app/profile" />
       <ResetPassword path="/app/reset-password" />
-      {/* @ts-ignore: dynamic route import for reach router */}
-      <Board path="/app/board/:uuid" />
+      {/* Board route with optional widgetId param */}
+      <BoardWithPath path="/app/board/:uuid/:widgetId" />
+      <BoardWithPath path="/app/board/:uuid" />
       <Home default path="/app" />
     </Router>
   );
