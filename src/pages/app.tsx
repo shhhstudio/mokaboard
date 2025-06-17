@@ -46,7 +46,7 @@ const App: React.FC<PageProps> = () => {
       <BoardWithPath path="/app/board/:uuid" />
       <Home default path="/app" />
     </Router>
-  
+  );
 };
 
 export default App;
