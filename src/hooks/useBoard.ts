@@ -68,9 +68,9 @@ export function useBoard(boardId: string | null) {
     }, [boardId, fetchBoard]);
 
     // Refetch for actions (not initial load)
-    const refetch = useCallback(() => fetchBoard(false), [fetchBoard]);
+    const refetch = useCallback(() => { console.log("refetch"); return fetchBoard(false) }, [fetchBoard]);
 
-    console.log("rerender useBoard");
+    console.log("rerender useBoard", error, initialLoading, loading, boardId);
 
     return { board, error, initialLoading, loading, refetch };
 }

@@ -1,14 +1,10 @@
-import React, { useEffect, useMemo, useCallback } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useParams, navigate } from "@reach/router";
 import { Box, Button, Heading, Spinner, Text, Flex, SimpleGrid, IconButton, Dialog, Portal, CloseButton, Textarea } from "@chakra-ui/react";
 import { useBoard } from "@/hooks/useBoard";
 import { updateWidget } from "@/hooks/apiWidgets";
 import { StatusWidget, BlankWidget } from "@/components/widgets";
-import { DndContext, closestCenter, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
-import { SortableContext, useSortable, arrayMove, rectSortingStrategy } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { LuTrash2 } from "react-icons/lu";
-import { LuGripVertical } from "react-icons/lu";
 import { Widget } from "@/types";
 
 
@@ -26,7 +22,7 @@ export const Board: React.FC = () => {
 
     // Build grid slots from widgets[].boardWidget.order (max 8 slots for 4x2 grid)
     const GRID_SIZE = 8;
-    const slots = React.useMemo(() => {
+    const slots = useMemo(() => {
         const arr = Array(GRID_SIZE).fill(null);
         const widgets = board?.widgets || [];
         widgets.forEach((widget: any) => {
@@ -34,99 +30,7 @@ export const Board: React.FC = () => {
             if (order < GRID_SIZE) arr[order] = widget;
         });
         return arr;
-    }, [board]); // Only depend on board, not JSON.stringify
-
-    // DnD-kit setup
-    const sensors = useSensors(useSensor(PointerSensor));
-    const [localSlots, setLocalSlots] = React.useState<(any | null)[]>(slots);
-    React.useEffect(() => {
-        setLocalSlots(slots);
-    }, [slots]);
-
-    // Open modal if widgetId in URL
-    useEffect(() => {
-        if (widgetId && board?.widgets) {
-            const found = board.widgets.find((w: any) => w.id === widgetId);
-            if (found) {
-                setSelectedWidget(found);
-                setDialogOpen(true);
-            }
-        } else {
-            setSelectedWidget(null);
-            setDialogOpen(false);
-        }
-    }, [widgetId, board]);
-
-    // Sync JSON editor with only editable widget properties when modal opens or widget changes
-    React.useEffect(() => {
-        if (selectedWidget && dialogOpen) {
-            const editable = {
-                type: selectedWidget.type,
-                title: selectedWidget.title,
-                value: selectedWidget.value,
-                status: selectedWidget.status,
-            };
-            setJsonValue(JSON.stringify(editable, null, 2));
-            setJsonError(null);
-        }
-    }, [selectedWidget, dialogOpen]);
-
-    // Handle drag end (always enabled now)
-    const handleDragEnd = async (event: any) => {
-        const { active, over } = event;
-        if (!over || active.id === over.id) return;
-        const getIndex = (id: string) => {
-            let idx = localSlots.findIndex(w => w && w.id === id);
-            if (idx === -1 && id.startsWith('empty-')) {
-                idx = parseInt(id.replace('empty-', ''), 10);
-            }
-            return idx;
-        };
-        const oldIndex = getIndex(active.id);
-        const newIndex = getIndex(over.id);
-        if (oldIndex === -1 || newIndex === -1) return;
-        const newSlots = arrayMove(localSlots, oldIndex, newIndex);
-        setLocalSlots(newSlots);
-        try {
-            const { updateBoardWidget } = await import("@/hooks/apiWidgets");
-            const updates = newSlots.map((widget, idx) => {
-                if (widget && widget.boardWidget && widget.boardWidget.order !== idx) {
-                    return updateBoardWidget(widget.boardWidget.id, { order: idx });
-                }
-                return null;
-            }).filter(Boolean);
-            await Promise.all(updates);
-            await refetch();
-        } catch (e) {
-            alert("Failed to persist widget order");
-        }
-    };
-
-    // Sortable widget wrapper
-    function DraggableSlot({ widget, idx, children }: { widget: any, idx: number, children: (args: { listeners: any }) => React.ReactNode }) {
-        const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-            id: widget?.id ?? `empty-${idx}`,
-            disabled: !widget,
-        });
-        return (
-            <div
-                ref={setNodeRef}
-                {...attributes}
-                style={{
-                    position: 'relative',
-                    transform: CSS.Transform.toString(transform),
-                    transition,
-                    zIndex: isDragging ? 2 : 1,
-                    opacity: isDragging ? 0.7 : 1,
-                    cursor: widget ? 'grab' : undefined,
-                } as React.CSSProperties}
-            >
-                {children({ listeners })}
-            </div>
-        );
-    }
-
-
+    }, [board]);
 
     // Memoize the onChange handler for each widget
     const widgetOnChangeMap = useMemo(() => {
@@ -143,15 +47,38 @@ export const Board: React.FC = () => {
         return map;
     }, [board, refetch]);
 
-    // Show spinner for initial board load only
-    if (initialLoading) return <Flex minH="100vh" align="center" justify="center"><Spinner size="xl" /></Flex>;
-    if (error || !board) return (
-        <Flex minH="100vh" align="center" justify="center" direction="column">
-            <Text fontSize="xl" color="red.500">Board not found</Text>
-            <Button mt={4} onClick={() => navigate("/app")}>Back to Home</Button>
-        </Flex>
-    );
+    // Memoize handleWidgetClick to avoid unnecessary rerenders
+    const handleWidgetClick = React.useCallback((widget: any) => {
+        // Optionally implement modal open logic
+    }, []);
 
+    // Open modal if widgetId in URL
+    useEffect(() => {
+        if (widgetId && board?.widgets) {
+            const found = board.widgets.find((w: any) => w.id === widgetId);
+            if (found) {
+                setSelectedWidget(found);
+                setDialogOpen(true);
+            }
+        } else {
+            setSelectedWidget(null);
+            setDialogOpen(false);
+        }
+    }, [widgetId, board]);
+
+    // Sync JSON editor with only editable widget properties when modal opens or widget changes
+    useEffect(() => {
+        if (selectedWidget && dialogOpen) {
+            const editable = {
+                type: selectedWidget.type,
+                title: selectedWidget.title,
+                value: selectedWidget.value,
+                status: selectedWidget.status,
+            };
+            setJsonValue(JSON.stringify(editable, null, 2));
+            setJsonError(null);
+        }
+    }, [selectedWidget, dialogOpen]);
 
     // Add widget handler
     const handleAddWidget = async (order?: number) => {
@@ -191,13 +118,7 @@ export const Board: React.FC = () => {
         }
     };
 
-    // Replace navigate with window.history.pushState for modal open/close
-    const handleWidgetClick = (widget: any) => {
-        /*window.history.pushState({}, '', `/app/board/${uuid}/${widget.id}`);
-        setSelectedWidget(widget);
-        setDialogOpen(true);*/
-    };
-
+    // Modal open/close handlers
     const handleModalClose = () => {
         window.history.pushState({}, '', `/app/board/${uuid}`);
         setDialogOpen(false);
@@ -222,12 +143,18 @@ export const Board: React.FC = () => {
         }
     };
 
-    console.log("rerender ? ", loading)
+    if (initialLoading) return <Flex minH="100vh" align="center" justify="center"><Spinner size="xl" /></Flex>;
+    if (error || !board) return (
+        <Flex minH="100vh" align="center" justify="center" direction="column">
+            <Text fontSize="xl" color="red.500">Board not found</Text>
+            <Button mt={4} onClick={() => navigate("/app")}>Back to Home</Button>
+        </Flex>
+    );
 
     return (
         <Flex minH="100vh" bg="gray.50" direction="column">
             <Flex as="header" w="100%" bg="white" px={8} py={4} align="center" justify="space-between" boxShadow="sm">
-                <Heading size="md">{board.title || "Untitled Board"}</Heading>
+                <Heading size="md">{board?.title || "Untitled Board"}</Heading>
                 <Flex gap={2} align="center">
                     {loading && <Spinner size="sm" color="blue.500" mr={2} />}
                     <Button colorScheme="gray" size="sm" onClick={() => navigate("/app")}>Back</Button>
@@ -235,71 +162,50 @@ export const Board: React.FC = () => {
             </Flex>
             <Flex flex={1} align="center" justify="center" p={8} bgColor="white">
                 <Box position="relative" width="100%">
-                    <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd}
+                    <SimpleGrid
+                        columns={[2, 2, 4, 4]}
+                        gap={[2, 6, 6, 8]}
+                        width="max-content"
+                        marginX="auto"
+                        pointerEvents={loading ? "none" : undefined}
                     >
-                        <SortableContext
-                            items={localSlots.map((w, idx) => w?.id ?? `empty-${idx}`)}
-                            strategy={rectSortingStrategy}
-                        >
-                            <SimpleGrid
-                                columns={[2, 2, 4, 4]}
-                                gap={[2, 6, 6, 8]}
-                                width="max-content"
-                                marginX="auto"
-                                pointerEvents={loading ? "none" : undefined}
-                            >
-                                {localSlots.map((widget, idx) => (
-                                    <DraggableSlot key={widget?.id ?? `empty-${idx}`} widget={widget} idx={idx}>
-                                        {({ listeners }) => widget ? (
-                                            <Box
-                                                minH="120px"
-                                                bg="white"
-                                                borderRadius="md"
-                                                display="flex"
-                                                alignItems="center"
-                                                justifyContent="center"
-                                                position="relative"
-                                                onClick={() => handleWidgetClick(widget)}
-                                                cursor="pointer"
+                        {slots.map((widget, idx) => (
+                            widget ? (
+                                <Box
+                                    key={widget.id}
+                                    minH="120px"
+                                    bg="white"
+                                    borderRadius="md"
+                                    display="flex"
+                                    alignItems="center"
+                                    justifyContent="center"
+                                    position="relative"
+                                    onClick={() => handleWidgetClick(widget)}
+                                    cursor="pointer"
+                                >
+                                    <Box position="relative" w="100%" h="100%">
+                                        <StatusWidget
+                                            widget={widget}
+                                            onChange={widgetOnChangeMap.get(widget.id)}
+                                        />
+                                        <Flex position="absolute" bottom={2} right={2} gap={1} zIndex={3} pointerEvents="auto">
+                                            <IconButton
+                                                aria-label="Delete"
+                                                size="2xs"
+                                                rounded="full"
+                                                variant="solid"
+                                                onClick={e => { e.stopPropagation(); handleDeleteWidget(widget); }}
                                             >
-                                                <Box position="relative" w="100%" h="100%">
-                                                    <StatusWidget
-                                                        widget={widget}
-                                                        onChange={widgetOnChangeMap.get(widget.id)}
-                                                    />
-                                                    <Flex position="absolute" bottom={2} right={2} gap={1} zIndex={3} pointerEvents="auto">
-                                                        <IconButton
-                                                            aria-label="Reorder"
-                                                            size="2xs"
-                                                            variant="solid"
-                                                            rounded="full"
-                                                            {...listeners}
-                                                        >
-                                                            <LuGripVertical size={12} />
-                                                        </IconButton>
-                                                        <IconButton
-                                                            aria-label="Delete"
-                                                            size="2xs"
-                                                            rounded="full"
-                                                            variant="solid"
-                                                            onClick={e => { e.stopPropagation(); handleDeleteWidget(widget); }}
-                                                        >
-                                                            <LuTrash2 size={8} />
-                                                        </IconButton>
-                                                    </Flex>
-                                                </Box>
-                                            </Box>
-                                        ) : (
-                                            <BlankWidget idx={idx} onAdd={() => handleAddWidget(idx)} />
-                                        )}
-                                    </DraggableSlot>
-                                ))}
-                            </SimpleGrid>
-                        </SortableContext>
-                    </DndContext>
+                                                <LuTrash2 size={8} />
+                                            </IconButton>
+                                        </Flex>
+                                    </Box>
+                                </Box>
+                            ) : (
+                                <BlankWidget key={`empty-${idx}`} idx={idx} onAdd={() => handleAddWidget(idx)} />
+                            )
+                        ))}
+                    </SimpleGrid>
                 </Box>
             </Flex>
 
