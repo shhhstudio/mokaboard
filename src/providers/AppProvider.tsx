@@ -6,7 +6,7 @@ import { system } from "@/theme";
 import { AuthProvider } from "@/providers/AuthProvider";
 
 export const AppProvider = ({ children }: PropsWithChildren) => (
-  <ChakraProvider value={system}>
+  <ChakraProvider value={system} >
     <AuthProvider>{children}</AuthProvider>
-  </ChakraProvider>
+  </ChakraProvider >
 );

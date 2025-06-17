@@ -45,6 +45,7 @@ export interface Widget {
   title: string | null;
   type: "kpi" | "announcement" | "question" | "help" | string;
   status: "on_track" | "at_risk" | "fail" | null;
+  scopes: string[];
   value: Record<string, any>;
 }
 

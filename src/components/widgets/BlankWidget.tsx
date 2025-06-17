@@ -8,7 +8,7 @@ export interface BlankWidgetProps {
     idx: number;
 }
 
-export const BlankWidget: React.FC<BlankWidgetProps> = ({ onAdd }) => (
+const InternalBlankWidget: React.FC<BlankWidgetProps> = ({ onAdd }) => (
     <Container bg="widgetBgBlank">
         <Flex alignItems="center" justify="center" grow={1}>
             <IconButton
@@ -23,6 +23,7 @@ export const BlankWidget: React.FC<BlankWidgetProps> = ({ onAdd }) => (
                 <LuPlus size={28} />
             </IconButton>
         </Flex>
-
     </Container >
 );
+
+export const BlankWidget = React.memo(InternalBlankWidget);

@@ -1,3 +1,4 @@
+import './src/wdyr';
 import React from "react";
 import { AppProvider } from "@/providers/AppProvider";
 
