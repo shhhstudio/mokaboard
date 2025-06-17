@@ -4,9 +4,10 @@ import { Textarea, TextareaProps } from "@chakra-ui/react";
 interface EditableTextProps extends Omit<TextareaProps, "onChange" | "value"> {
     value?: string;
     onChange?: (v: string) => void;
+    placeholder?: string;
 }
 
-export const EditableText: React.FC<EditableTextProps> = ({ value, onChange, ...rest }) => {
+export const EditableText: React.FC<EditableTextProps> = ({ value, onChange, placeholder = "Type something...", ...rest }) => {
     const [isFocused, setFocused] = useState(false);
     const [internalValue, setInternalValue] = useState(value);
     const ref = useRef<HTMLTextAreaElement>(null);
@@ -20,6 +21,7 @@ export const EditableText: React.FC<EditableTextProps> = ({ value, onChange, ...
             ref={ref}
             value={internalValue}
             onChange={(e) => setInternalValue(e.target.value)}
+            placeholder={placeholder}
             autoresize
             resize="none"
             bgColor="transparent"

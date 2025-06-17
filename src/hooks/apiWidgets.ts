@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabaseClient";
 import type { Widget, BoardWidget, Tag, WidgetTag } from "@/types";
 
 // CRUD for Widget
-export async function createWidget(widget: Omit<Widget, "id" | "created_at">): Promise<Widget> {
+export async function createWidget(widget: Omit<Widget, "id" | "created_at" | "scopes">): Promise<Widget> {
     const { data, error } = await supabase
         .from("widget")
         .insert(widget)

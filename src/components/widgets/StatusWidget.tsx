@@ -35,8 +35,6 @@ const InternalStatusWidget: React.FC<StatusWidgetProps> = ({
         [onChange]
     );
 
-    console.log("StatusWidget render", widget.id, widget.title, widget.status, widget.value, widget.scopes);
-
     return (
         <Container position="relative">
             {widget?.status !== null && (
@@ -67,13 +65,6 @@ const areEqual = (prevProps: StatusWidgetProps, nextProps: StatusWidgetProps) =>
     // Only re-render if widget id or value/status/title/scopes change
     const prev = prevProps.widget;
     const next = nextProps.widget;
-    console.log(prev, next, (
-        prev.id === next.id &&
-        prev.title === next.title &&
-        prev.status === next.status &&
-        JSON.stringify(prev.value) === JSON.stringify(next.value) &&
-        JSON.stringify(prev.scopes) === JSON.stringify(next.scopes)
-    ))
     return (
         prev.id === next.id &&
         prev.title === next.title &&
