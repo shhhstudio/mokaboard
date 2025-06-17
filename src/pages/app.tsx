@@ -11,16 +11,27 @@ import { useSession } from "@/providers/AuthProvider";
 import { Home } from "@/sections/Home";
 import { Board } from "@/sections/board";
 import type { PageProps } from "gatsby";
+import { Spinner, Flex } from "@chakra-ui/react";
 
 const App: React.FC<PageProps> = () => {
-  if (typeof window === "undefined") {
+  // Attendre l'hydratation côté client
+  const [isHydrated, setIsHydrated] = React.useState(false);
+  React.useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+  const session = useSession();
+
+  if (typeof window === "undefined" || !isHydrated) {
     return null;
   }
 
-  const session = useSession();
-
   if (session === undefined) {
-    return <Router></Router>;
+    // Affiche un spinner pendant le chargement de la session
+    return (
+      <Flex minH="100vh" align="center" justify="center">
+        <Spinner size="xl" />
+      </Flex>
+    );
   }
 
   if (session === null) {
@@ -36,7 +47,6 @@ const App: React.FC<PageProps> = () => {
   // Add RouteProps to Board for reach router
   const BoardWithPath = (props: any) => <Board {...props} />;
 
-  console.log("App render", session);
   return (
     <Router>
       <Profile path="/app/profile" />
