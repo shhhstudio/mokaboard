@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Textarea, TextareaProps } from "@chakra-ui/react";
 
 interface EditableTextProps extends Omit<TextareaProps, "onChange" | "value"> {
@@ -7,13 +7,21 @@ interface EditableTextProps extends Omit<TextareaProps, "onChange" | "value"> {
     placeholder?: string;
 }
 
-export const EditableText: React.FC<EditableTextProps> = ({ value, onChange, placeholder = "Type something...", ...rest }) => {
+export const EditableText: React.FC<EditableTextProps> = ({
+    value,
+    onChange,
+    placeholder = "Type something...",
+    ...rest
+}) => {
     const [isFocused, setFocused] = useState(false);
     const [internalValue, setInternalValue] = useState(value);
     const ref = useRef<HTMLTextAreaElement>(null);
 
-    React.useEffect(() => {
+    useEffect(() => {
         setInternalValue(value || "");
+        if ((value || "") === "" && ref.current) {
+            ref.current.focus();
+        }
     }, [value]);
 
     return (
@@ -48,7 +56,10 @@ export const EditableText: React.FC<EditableTextProps> = ({ value, onChange, pla
             onBlur={() => {
                 setFocused(false);
                 if (onChange && internalValue !== undefined) {
-                    const cleaned = internalValue.replace(/^[\s\u200B\u200C\u200D\uFEFF]+|[\s\u200B\u200C\u200D\uFEFF]+$/g, "");
+                    const cleaned = internalValue.replace(
+                        /^[\s\u200B\u200C\u200D\uFEFF]+|[\s\u200B\u200C\u200D\uFEFF]+$/g,
+                        ""
+                    );
                     setInternalValue(cleaned);
                     if (cleaned !== value) {
                         onChange(cleaned);

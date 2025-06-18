@@ -4,7 +4,7 @@ import { Container } from "./base/Container";
 import { LuPlus } from "react-icons/lu";
 
 export interface BlankWidgetProps {
-    onAdd: () => void;
+    onAdd?: () => void;
     idx: number;
 }
 

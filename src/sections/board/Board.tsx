@@ -4,6 +4,7 @@ import { Button, Spinner, Text, Flex } from "@chakra-ui/react";
 import { BoardContent } from "./BoardContent";
 import { useBoard } from "@/hooks/useBoard";
 
+
 export const Board: React.FC = () => {
     const { uuid } = useParams<{ uuid: string }>();
     const { board, error, initialLoading, refetch } = useBoard(uuid || null);
@@ -19,8 +20,6 @@ export const Board: React.FC = () => {
     return (
         <BoardContent
             board={board}
-            error={error}
-            initialLoading={initialLoading}
             refetch={refetch}
         />
     );

@@ -1,17 +1,8 @@
-import React, { useEffect, useMemo } from "react";
-import {
-    Box,
-    Button,
-    Heading,
-    Text,
-    Flex,
-    SimpleGrid,
-    IconButton,
-    Textarea,
-} from "@chakra-ui/react";
-import { StatusWidget, BlankWidget } from "@/components/widgets";
+import React, { useCallback, useEffect, useMemo } from "react";
+import { Box, Button, Heading, Flex, SimpleGrid } from "@chakra-ui/react";
+import { Widget, BlankWidget } from "@/components/widgets";
 import { LuTrash2 } from "react-icons/lu";
-import { Widget } from "@/types";
+import { Widget as WidgetType } from "@/types";
 import { navigate } from "@reach/router";
 import {
     updateWidget,
@@ -21,12 +12,21 @@ import {
     addWidgetToBoard,
 } from "@/hooks/apiWidgets";
 
+
 interface BoardContentProps {
     board: any;
     refetch: () => void;
 }
 
-export const BoardContent: React.FC<BoardContentProps> = ({ board, refetch }) => {
+export const BoardContent: React.FC<BoardContentProps> = ({
+    board,
+    refetch,
+}) => {
+    // Selection state for widget
+    const [selectedWidgetId, setSelectedWidgetId] = React.useState<string | null>(
+        null
+    );
+
     // Build grid slots from widgets[].boardWidget.order (max 8 slots for 4x2 grid)
     const GRID_SIZE = 8;
     const slots = useMemo(() => {
@@ -39,22 +39,42 @@ export const BoardContent: React.FC<BoardContentProps> = ({ board, refetch }) =>
         return arr;
     }, [board]);
 
-    // Memoize the onChange handler for each widget
-    const widgetOnChangeMap = useMemo(() => {
-        const map = new Map<string, (changes: Partial<Widget>) => Promise<void>>();
-        (board?.widgets || []).forEach((widget: Widget) => {
-            map.set(widget.id, async (changes: Partial<Widget>) => {
-                await updateWidget(widget.id, changes);
-                await refetch();
+    // Generalized handler map for widgets
+    const widgetHandlerMap = useMemo(() => {
+        const map = new Map<
+            string,
+            {
+                onChange: (changes: Partial<WidgetType>) => Promise<void>;
+                onClick: (e: any) => void;
+                onDelete?: (widget: any) => Promise<void>;
+            }
+        >();
+        (board?.widgets || []).forEach((widget: WidgetType) => {
+            map.set(widget.id, {
+                onChange: async (changes: Partial<WidgetType>) => {
+                    await updateWidget(widget.id, changes);
+                    await refetch();
+                },
+                onClick: (e) => {
+                    e.stopPropagation();
+                    setSelectedWidgetId(widget.id);
+                },
+                onDelete: async () => {
+                    try {
+                        await deleteBoardWidget(widget.boardWidget.id);
+                        await deleteWidget(widget.id);
+                        await refetch();
+                    } catch (e) {
+                        console.error("Failed to delete widget:", e);
+                    }
+                }
             });
         });
         return map;
     }, [board, refetch]);
 
-    // Add widget handler
     const handleAddWidget = async (order?: number) => {
         try {
-            // Create a widget with empty title
             const widget = await createWidget({
                 title: "",
                 created_by: board!.created_by,
@@ -62,26 +82,17 @@ export const BoardContent: React.FC<BoardContentProps> = ({ board, refetch }) =>
                 status: null,
                 value: {},
             });
-            await addWidgetToBoard({
+            const newWidget = await addWidgetToBoard({
                 board_id: board!.id,
                 widget_id: widget.id,
                 order: typeof order === "number" ? order : board!.widgets.length,
             });
+            if (newWidget && newWidget.widget_id) {
+                setSelectedWidgetId(newWidget.widget_id);
+            }
             await refetch();
         } catch {
             alert("Failed to add widget");
-        }
-    };
-
-    // Delete widget handler
-    const handleDeleteWidget = async (widget: any) => {
-        if (!window.confirm("Delete this widget? This cannot be undone.")) return;
-        try {
-            await deleteBoardWidget(widget.boardWidget.id);
-            await deleteWidget(widget.id);
-            await refetch();
-        } catch {
-            alert("Failed to delete widget");
         }
     };
 
@@ -106,7 +117,7 @@ export const BoardContent: React.FC<BoardContentProps> = ({ board, refetch }) =>
                     </Button>
                 </Flex>
             </Flex>
-            <Flex flex={1} align="center" justify="center" p={8} bgColor="white">
+            <Flex flex={1} align="center" justify="center" padding={8} onClick={() => setSelectedWidgetId(null)}>
                 <Box position="relative" width="100%">
                     <SimpleGrid
                         columns={[2, 2, 4, 4]}
@@ -116,45 +127,14 @@ export const BoardContent: React.FC<BoardContentProps> = ({ board, refetch }) =>
                     >
                         {slots.map((widget, idx) =>
                             widget ? (
-                                <Box
+                                <Widget
+                                    widget={widget}
+                                    onChange={widgetHandlerMap.get(widget.id)?.onChange}
+                                    onClick={widgetHandlerMap.get(widget.id)?.onClick}
+                                    onDelete={widgetHandlerMap.get(widget.id)?.onDelete}
+                                    selected={selectedWidgetId === widget.id}
                                     key={widget.id}
-                                    minH="120px"
-                                    bg="white"
-                                    borderRadius="md"
-                                    display="flex"
-                                    alignItems="center"
-                                    justifyContent="center"
-                                    position="relative"
-                                    cursor="pointer"
-                                >
-                                    <Box position="relative" w="100%" h="100%">
-                                        <StatusWidget
-                                            widget={widget}
-                                            onChange={widgetOnChangeMap.get(widget.id)}
-                                        />
-                                        <Flex
-                                            position="absolute"
-                                            bottom={2}
-                                            right={2}
-                                            gap={1}
-                                            zIndex={3}
-                                            pointerEvents="auto"
-                                        >
-                                            <IconButton
-                                                aria-label="Delete"
-                                                size="2xs"
-                                                rounded="full"
-                                                variant="solid"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteWidget(widget);
-                                                }}
-                                            >
-                                                <LuTrash2 size={8} />
-                                            </IconButton>
-                                        </Flex>
-                                    </Box>
-                                </Box>
+                                />
                             ) : (
                                 <BlankWidget
                                     key={`empty-${idx}`}
