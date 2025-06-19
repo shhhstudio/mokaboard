@@ -95,7 +95,9 @@ export default function BoardTimeline({
                                 </Timeline.Title>
                                 <Flex mt={1} direction="row" gap={3} wrap={"wrap"}>
                                     {items.map((board) => (
-                                        <BoardThumbnail key={board.id}>
+                                        <BoardThumbnail key={board.id} cursor="pointer" onClick={() => {
+                                            window.location.href = `/app/board/${board.id}`;
+                                        }}>
                                             <Flex direction="column" justify="space-between" grow={1}>
                                                 <Box>
                                                     <EditableText
@@ -106,6 +108,7 @@ export default function BoardTimeline({
                                                         }}
                                                         fontWeight="medium"
                                                         fontSize="md"
+                                                        stopOnClickPropagation
                                                     />
                                                     <EditableText
                                                         fontSize="sm"
@@ -117,6 +120,7 @@ export default function BoardTimeline({
                                                             });
                                                             refreshWorkspace();
                                                         }}
+                                                        stopOnClickPropagation
                                                     />
                                                 </Box>
                                                 <Flex align="center" gap={2} justify="space-between">
