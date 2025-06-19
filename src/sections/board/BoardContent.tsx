@@ -117,7 +117,7 @@ export const BoardContent: React.FC<BoardContentProps> = ({
                     </Button>
                 </Flex>
             </Flex>
-            <Flex flex={1} align="center" justify="center" padding={8} onClick={() => setSelectedWidgetId(null)}>
+            <Flex flex={1} align="center" justify="center" marginY={8} onClick={() => setSelectedWidgetId(null)}>
                 <Box position="relative" width="100%">
                     <SimpleGrid
                         columns={[2, 2, 4, 4]}
