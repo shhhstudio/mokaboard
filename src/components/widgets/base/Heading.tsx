@@ -1,6 +1,6 @@
 import React from "react";
 import { Box } from "@chakra-ui/react";
-import { EditableText } from "./EditableText";
+import { EditableText } from "@/components/EditableText";
 
 interface HeadingProps {
     value?: string;

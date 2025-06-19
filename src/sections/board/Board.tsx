@@ -13,7 +13,7 @@ export const Board: React.FC = () => {
     return (
         <Layout headerType="editor">
             <Layout.Header>
-                <IconButton position={"absolute"}
+                <IconButton position={{ base: "relative", md: "absolute" }}
                     aria-label="Back"
                     variant="ghost"
                     size="sm"
@@ -21,6 +21,7 @@ export const Board: React.FC = () => {
                     onClick={() => navigate("/app")}
                     top={3}
                     left={3}
+                    width="min-content"
                 >
                     <FaArrowLeft />
                 </IconButton>

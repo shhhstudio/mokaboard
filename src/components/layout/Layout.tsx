@@ -37,11 +37,11 @@ export const Layout: React.FC<LayoutProps> & {
     return (
         <Flex direction="column" flex="1" minHeight={"100vh"}>
             {header}
-            <Flex flex={1} align={"stretch"} flexDirection={sidebarPosition === "left" ? "row" : "row-reverse"}>
+            <Flex flex={1} align={"stretch"} direction={{ base: "column", md: "row" }} /*"cols", md: (sidebarPosition === "left" ? "row" : "row-reverse") }}*/>
                 {sidebar && (
                     <Flex flexDirection="column"
-                        w={{ base: "full", lg: sidebarWidth }}
-                        bg="gray.100"
+                        w={{ base: "full", md: sidebarWidth }}
+                        bg="moka.subtleBackground"
                         p={4}
                         borderRight="1px solid #e2e8f0"
                         alignSelf="stretch"

@@ -35,6 +35,7 @@ const customConfig = defineConfig({
                     none: { value: "{colors.gray.300}" },
 
                     background: { value: "#F3EFEC" },
+                    subtleBackground: { value: "#F3EFEC5F" },
                 },
             },
         },
