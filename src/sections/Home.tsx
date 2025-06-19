@@ -3,6 +3,7 @@ import { Box, Button, Heading, Spinner, Text, Flex } from "@chakra-ui/react";
 import { useSession } from "@/providers/AuthProvider";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { createBoard, deleteBoard } from "@/hooks/apiBoards";
+import { Layout } from "@/components/layout/Layout";
 
 interface RouteProps {
     path?: string;
@@ -32,67 +33,55 @@ export const Home: React.FC<RouteProps> = () => {
     }, [workspace.spaces, selectedTrackId]);
 
     return (
-        <Flex minH="100vh" bg="gray.50" direction="column">
-            {/* Header */}
-            <Flex as="header" w="100%" bg="white" px={8} py={4} align="center" justify="space-between" boxShadow="sm">
-                <Heading size="md">Mokaboard</Heading>
-                <Button colorScheme="red" size="sm" onClick={async () => {
-                    await import("@/lib/supabaseClient").then(({ supabase }) => supabase.auth.signOut());
-                    window.location.href = "/app/login";
-                }}>
-                    Logout
-                </Button>
-            </Flex>
-            <Flex flex={1}>
-                {/* Sidebar */}
-                <Box w="300px" bg="gray.100" p={4} borderRight="1px solid #e2e8f0">
-                    <Heading size="md" mb={4}>Spaces</Heading>
-                    <Box>
-                        {workspace.spaces?.map(space => (
-                            <Box key={space.id} mb={2}>
-                                <Text fontWeight="bold">{space.name || "Untitled Space"}</Text>
-                                <Box pl={6} mt={1}>
-                                    {space.track?.map(track => (
-                                        <Box key={track.id} mb={1} display="flex" alignItems="center">
-                                            <Text
-                                                fontWeight={selectedTrackId === track.id ? "bold" : "normal"}
-                                                cursor="pointer"
-                                                onClick={() => setSelectedTrackId(track.id)}
-                                            >
-                                                {track.name || "Untitled Track"}
-                                            </Text>
-                                        </Box>
-                                    ))}
-                                    <Button
-                                        colorScheme="green"
-                                        size="xs"
-                                        mt={2}
-                                        onClick={async (e) => {
-                                            e.stopPropagation();
-                                            const name = window.prompt("Track name?");
-                                            if (!name) return;
-                                            try {
-                                                await import("@/hooks/apiTracks").then(({ createTrack }) =>
-                                                    createTrack({
-                                                        name,
-                                                        space_id: space.id,
-                                                        description: ""
-                                                    })
-                                                );
-                                                refreshWorkspace();
-                                            } catch {
-                                                alert("Failed to create track");
-                                            }
-                                        }}
-                                    >
-                                        + Add Track
-                                    </Button>
-                                </Box>
+        <Layout>
+            <Layout.Sidebar>
+                <Heading size="md" mb={4}>Spaces</Heading>
+                <Box>
+                    {workspace.spaces?.map(space => (
+                        <Box key={space.id} mb={2}>
+                            <Text fontWeight="bold">{space.name || "Untitled Space"}</Text>
+                            <Box pl={6} mt={1}>
+                                {space.track?.map(track => (
+                                    <Box key={track.id} mb={1} display="flex" alignItems="center">
+                                        <Text
+                                            fontWeight={selectedTrackId === track.id ? "bold" : "normal"}
+                                            cursor="pointer"
+                                            onClick={() => setSelectedTrackId(track.id)}
+                                        >
+                                            {track.name || "Untitled Track"}
+                                        </Text>
+                                    </Box>
+                                ))}
+                                <Button
+                                    colorScheme="green"
+                                    size="xs"
+                                    mt={2}
+                                    onClick={async (e) => {
+                                        e.stopPropagation();
+                                        const name = window.prompt("Track name?");
+                                        if (!name) return;
+                                        try {
+                                            await import("@/hooks/apiTracks").then(({ createTrack }) =>
+                                                createTrack({
+                                                    name,
+                                                    space_id: space.id,
+                                                    description: ""
+                                                })
+                                            );
+                                            refreshWorkspace();
+                                        } catch {
+                                            alert("Failed to create track");
+                                        }
+                                    }}
+                                >
+                                    + Add Track
+                                </Button>
                             </Box>
-                        ))}
-                    </Box>
+                        </Box>
+                    ))}
                 </Box>
-                {/* Main Content - only show boards from selected track */}
+            </Layout.Sidebar>
+            <Layout.Content>
                 <Box flex={1} p={8}>
                     {loading && <Spinner size="sm" color="blue.400" mb={2} />}
                     {!selectedTrackId && <Text color="gray.500">Select a track to view its boards.</Text>}
@@ -177,7 +166,7 @@ export const Home: React.FC<RouteProps> = () => {
                         )}
                     </Flex>
                 </Box>
-            </Flex>
-        </Flex>
+            </Layout.Content>
+        </Layout>
     );
 };

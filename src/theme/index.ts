@@ -15,11 +15,6 @@ const customConfig = defineConfig({
             colors: {
                 widgetBg: { value: "#F3EFEC" },
                 widgetBgBlank: { value: "#F3EFEC5F" },
-                /*accent: { value: "#7AF0A4" },
-                        statusSuccess: { value: "#21E91A" },
-                        statusError: { value: "#F6143A" },
-                        statusWarning: { value: "#F99807" },
-                        statusInfo: { value: "blue" },*/
                 moka: {
 
                     50: { value: '#fafafa' },
@@ -38,6 +33,8 @@ const customConfig = defineConfig({
                     at_risk: { value: "{colors.yellow.500}" },
                     fail: { value: "{colors.red.500}" },
                     none: { value: "{colors.gray.300}" },
+
+                    background: { value: "#F3EFEC" },
                 },
             },
         },

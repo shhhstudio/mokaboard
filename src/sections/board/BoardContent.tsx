@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Box, Button, Heading, Flex, SimpleGrid } from "@chakra-ui/react";
 import { Widget, BlankWidget } from "@/components/widgets";
-import { LuTrash2 } from "react-icons/lu";
 import { Widget as WidgetType } from "@/types";
 import { navigate } from "@reach/router";
 import {
@@ -67,7 +66,7 @@ export const BoardContent: React.FC<BoardContentProps> = ({
                     } catch (e) {
                         console.error("Failed to delete widget:", e);
                     }
-                }
+                },
             });
         });
         return map;
@@ -99,53 +98,42 @@ export const BoardContent: React.FC<BoardContentProps> = ({
     if (!board) return null;
 
     return (
-        <Flex minH="100vh" bg="gray.50" direction="column">
-            <Flex
-                as="header"
-                w="100%"
-                bg="white"
-                px={8}
-                py={4}
-                align="center"
-                justify="space-between"
-                boxShadow="sm"
-            >
-                <Heading size="md">{board?.title || "Untitled Board"}</Heading>
-                <Flex gap={2} align="center">
-                    <Button colorScheme="gray" size="sm" onClick={() => navigate("/app")}>
-                        Back
-                    </Button>
-                </Flex>
-            </Flex>
-            <Flex flex={1} align="center" justify="center" marginY={8} onClick={() => setSelectedWidgetId(null)}>
-                <Box position="relative" width="100%">
-                    <SimpleGrid
-                        columns={[2, 2, 4, 4]}
-                        gap={[2, 6, 6, 8]}
-                        width="max-content"
-                        marginX="auto"
-                    >
-                        {slots.map((widget, idx) =>
-                            widget ? (
-                                <Widget
-                                    widget={widget}
-                                    onChange={widgetHandlerMap.get(widget.id)?.onChange}
-                                    onClick={widgetHandlerMap.get(widget.id)?.onClick}
-                                    onDelete={widgetHandlerMap.get(widget.id)?.onDelete}
-                                    selected={selectedWidgetId === widget.id}
-                                    key={widget.id}
-                                />
-                            ) : (
-                                <BlankWidget
-                                    key={`empty-${idx}`}
-                                    idx={idx}
-                                    onAdd={() => handleAddWidget(idx)}
-                                />
-                            )
-                        )}
-                    </SimpleGrid>
-                </Box>
-            </Flex>
+        <Flex
+            flex={1}
+            height={"100%"}
+            align="center"
+            justify="center"
+            paddingY={8}
+            onClick={() => setSelectedWidgetId(null)}
+        >
+            <Box position="relative" width="100%">
+                <SimpleGrid
+                    columns={[2, 2, 4, 4]}
+                    gap={[2, 6, 6, 8]}
+                    width="max-content"
+                    marginX="auto"
+                >
+                    {slots.map((widget, idx) =>
+                        widget ? (
+                            <Widget
+                                widget={widget}
+                                onChange={widgetHandlerMap.get(widget.id)?.onChange}
+                                onClick={widgetHandlerMap.get(widget.id)?.onClick}
+                                onDelete={widgetHandlerMap.get(widget.id)?.onDelete}
+                                selected={selectedWidgetId === widget.id}
+                                key={widget.id}
+                            />
+                        ) : (
+                            <BlankWidget
+                                key={`empty-${idx}`}
+                                idx={idx}
+                                onAdd={() => handleAddWidget(idx)}
+                            />
+                        )
+                    )}
+                </SimpleGrid>
+            </Box>
         </Flex>
+
     );
 };
