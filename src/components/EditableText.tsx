@@ -17,7 +17,6 @@ export const EditableText: React.FC<EditableTextProps> = ({
     stopOnClickPropagation = false,
     ...rest
 }) => {
-    const [isFocused, setFocused] = useState(false);
     const [internalValue, setInternalValue] = useState(value);
     const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -51,9 +50,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
                 userSelect: "none",
                 cursor: "text",
             }}
-            readOnly={!isFocused}
             onClick={(e) => {
-                setFocused(true);
                 ref.current?.focus();
                 if (onClick) {
                     onClick(e);
@@ -62,9 +59,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
                     e.stopPropagation();
                 }
             }}
-            onFocus={() => setFocused(true)}
             onBlur={() => {
-                setFocused(false);
                 if (onChange && internalValue !== undefined) {
                     const cleaned = internalValue.replace(
                         /^[\s\u200B\u200C\u200D\uFEFF]+|[\s\u200B\u200C\u200D\uFEFF]+$/g,
