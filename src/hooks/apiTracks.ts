@@ -5,7 +5,7 @@ export async function createTrack(track: Omit<Track, "id" | "created_at">): Prom
     const { data, error } = await supabase
         .from("track")
         .insert(track)
-        .select("id,name,description,space_id")
+        .select("*")
         .single();
     if (error || !data) throw error;
     return data as Track;
@@ -16,7 +16,7 @@ export async function updateTrack(id: string, updates: Partial<Track>): Promise<
         .from("track")
         .update(updates)
         .eq("id", id)
-        .select("id,name,description,space_id")
+        .select("*")
         .single();
     if (error || !data) throw error;
     return data as Track;

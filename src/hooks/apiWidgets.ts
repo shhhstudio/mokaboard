@@ -6,7 +6,7 @@ export async function createWidget(widget: Omit<Widget, "id" | "created_at" | "s
     const { data, error } = await supabase
         .from("widget")
         .insert(widget)
-        .select("id,title,created_by,type,status,value,created_at")
+        .select("*")
         .single();
     if (error || !data) throw error;
     return data as Widget;
@@ -17,7 +17,7 @@ export async function updateWidget(id: string, updates: Partial<Widget>): Promis
         .from("widget")
         .update(updates)
         .eq("id", id)
-        .select("id,title,created_by,type,status,value,created_at")
+        .select("*")
         .single();
     if (error || !data) throw error;
     return data as Widget;
@@ -33,7 +33,7 @@ export async function addWidgetToBoard(boardWidget: Omit<BoardWidget, "id" | "cr
     const { data, error } = await supabase
         .from("board_widget")
         .insert(boardWidget)
-        .select("id,created_at,board_id,widget_id,order")
+        .select("*")
         .single();
     if (error || !data) throw error;
     return data as BoardWidget;
@@ -44,7 +44,7 @@ export async function updateBoardWidget(id: number, updates: Partial<BoardWidget
         .from("board_widget")
         .update(updates)
         .eq("id", id)
-        .select("id,created_at,board_id,widget_id,order")
+        .select("*")
         .single();
     if (error || !data) throw error;
     return data as BoardWidget;
@@ -117,6 +117,5 @@ export async function getTagsForWidget(widget_id: string): Promise<Tag[]> {
         .select("tag(*)")
         .eq("widget_id", widget_id);
     if (error) throw error;
-    // data is array of { tag: Tag }
     return (data || []).map((row: any) => row.tag as Tag);
 }

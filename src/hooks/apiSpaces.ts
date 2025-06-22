@@ -5,7 +5,7 @@ export async function createSpace(space: Omit<Space, "id" | "created_at">): Prom
     const { data, error } = await supabase
         .from("space")
         .insert(space)
-        .select("id,name,description,created_by,date,status")
+        .select("*")
         .single();
     if (error || !data) throw error;
     return data as Space;
@@ -16,7 +16,7 @@ export async function updateSpace(id: string, updates: Partial<Space>): Promise<
         .from("space")
         .update(updates)
         .eq("id", id)
-        .select("id,name,description,created_by,date,status")
+        .select("*")
         .single();
     if (error || !data) throw error;
     return data as Space;

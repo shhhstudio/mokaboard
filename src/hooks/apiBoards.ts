@@ -5,7 +5,7 @@ export async function createBoard(board: Omit<Board, "id" | "created_at">): Prom
     const { data, error } = await supabase
         .from("board")
         .insert(board)
-        .select("id,title,description,created_by,track_id,date,date_from,status")
+        .select("*") // Use * to always get all fields, or specify new fields
         .single();
     if (error || !data) throw error;
     return data as Board;
@@ -16,7 +16,7 @@ export async function updateBoard(id: string, updates: Partial<Board>): Promise<
         .from("board")
         .update(updates)
         .eq("id", id)
-        .select("id,title,description,created_by,track_id,date,date_from,status")
+        .select("*")
         .single();
     if (error || !data) throw error;
     return data as Board;

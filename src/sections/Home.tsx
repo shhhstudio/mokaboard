@@ -214,7 +214,7 @@ export const Home: React.FC<RouteProps> = () => {
     const { workspace, loading, refreshWorkspace } = useWorkspace();
     const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
     const collapsForceOpen = useBreakpointValue({ base: undefined, md: true });
-    const [menuOpened, setMenuOpened] = useState<boolean>(true);
+    const [menuOpened, setMenuOpened] = useState<boolean>(false);
 
     // Find selected track object
     const selectedTrack = React.useMemo(() => {
@@ -302,9 +302,11 @@ export const Home: React.FC<RouteProps> = () => {
                                                     space_id: space.id,
                                                     description: "",
                                                 });
+                                                console.log("Created track:", track);
                                                 setSelectedTrackId(track.id);
                                                 refreshWorkspace();
-                                            } catch {
+                                            } catch (e) {
+                                                console.log(e)
                                                 alert("Failed to update track name");
                                             }
                                         }}

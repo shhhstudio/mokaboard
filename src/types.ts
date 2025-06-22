@@ -1,7 +1,20 @@
+// ────────────────────────────────────────────────
+// Re-aligned types (matching current schema)
+// ────────────────────────────────────────────────
+
 export type UUID = string;
 
+/*─────────────────────────*/
+/*  Shared enums           */
+/*─────────────────────────*/
 export type SpaceType = "private" | "team" | string;
+export type PermissionRole = "owner" | "member" | "guest";
+export type BoardStatus = "private" | "draft" | "published" | "archived";
+export type WidgetHealth = "on_track" | "at_risk" | "fail" | null;
 
+/*─────────────────────────*/
+/*  Users                  */
+/*─────────────────────────*/
 export interface User {
   id: UUID;
   firstname: string | null;
@@ -10,6 +23,9 @@ export interface User {
   created_at: string;
 }
 
+/*─────────────────────────*/
+/*  Space & membership     */
+/*─────────────────────────*/
 export interface Space {
   id: UUID;
   created_at: string;
@@ -18,43 +34,69 @@ export interface Space {
   type: SpaceType;
 }
 
-export interface Track {
+export interface SpaceUser {
   id: UUID;
   created_at: string;
   space_id: UUID;
+  user_id: UUID;
+  role: PermissionRole;        // 'owner' | 'member' | 'guest'
+}
+
+/*─────────────────────────*/
+/*  Track & membership     */
+/*─────────────────────────*/
+export interface Track {
+  id: UUID;
+  created_at: string;
+  space_id: UUID | null;
   name: string | null;
   description: string | null;
 }
 
+export interface TrackUser {
+  id: UUID;
+  created_at: string;
+  track_id: UUID;
+  user_id: UUID;
+  role: PermissionRole;
+}
+
+/*─────────────────────────*/
+/*  Board (+ widgets)      */
+/*─────────────────────────*/
 export interface Board {
   id: UUID;
   created_at: string;
+  updated_at: string;
   track_id: UUID | null;
   title: string | null;
   description: string | null;
   date: string | null;
   date_from: string | null;
-  status: "draft" | "ready" | "archived" | string | null;
+  status: BoardStatus | null;  // 'private' | 'draft' | 'published' | 'archived' | null
   created_by: UUID;
-}
-
-export interface Widget {
-  id: UUID;
-  created_at: string;
-  created_by: UUID;
-  title: string | null;
-  type: "kpi" | "announcement" | "question" | "help" | string;
-  status: "on_track" | "at_risk" | "fail" | null;
-  scopes: string[];
-  value: Record<string, any>;
 }
 
 export interface BoardWidget {
-  id: number;
+  id: number;                 // bigint → JS number
   created_at: string;
-  board_id: UUID;
-  widget_id: UUID;
-  order: number;
+  board_id: UUID | null;
+  widget_id: UUID | null;
+  order: number | null;
+}
+
+/*─────────────────────────*/
+/*  Widget & tags          */
+/*─────────────────────────*/
+export interface Widget {
+  id: UUID;
+  created_at: string;
+  updated_at: string;
+  created_by: UUID | null;
+  title: string | null;
+  type: string | null;         // e.g. 'kpi', 'announcement', …
+  status: WidgetHealth;        // 'on_track' | 'at_risk' | 'fail' | null
+  value: Record<string, any> | null;
 }
 
 export interface Tag {
@@ -69,7 +111,7 @@ export interface Tag {
 }
 
 export interface WidgetTag {
-  id: number;
+  id: number;                  // bigint → JS number
   widget_id: UUID;
   tag_id: UUID;
 }

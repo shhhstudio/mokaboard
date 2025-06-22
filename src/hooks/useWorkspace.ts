@@ -1,12 +1,24 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import type { Board, Space, Track } from "@/types";
+import type {
+    Board,
+    Space,
+    Track,
+    UUID,
+    PermissionRole,
+    BoardPermissionRole,
+} from "@/types";
 
 export interface WorkspaceTreeSpace extends Space {
+    space_user?: { user_id: UUID; role: PermissionRole }[];
     track?: Array<WorkspaceTreeTrack>;
 }
 export interface WorkspaceTreeTrack extends Track {
-    board?: Array<Board>;
+    track_user?: { user_id: UUID; role: PermissionRole }[];
+    board?: Array<WorkspaceTreeBoard>;
+}
+export interface WorkspaceTreeBoard extends Board {
+    board_user?: { user_id: UUID; role: BoardPermissionRole }[];
 }
 
 export interface WorkspaceTree {
@@ -23,14 +35,14 @@ export function useWorkspace() {
     const refreshWorkspace = useCallback(() => {
         setLoading(true);
         setError(null);
+
         (async () => {
             try {
-                // Deep select: spaces -> track -> board
                 const { data, error } = await supabase
-                    .from("space")
-                    .select(`id,created_at,created_by,name,type,track(id,created_at,space_id,name,description,board(id,created_at,track_id,title,description,date,date_from,status,created_by))`);
+                    .from('space')
+                    .select(`*,track(*,board(*))`);
                 if (error) throw error;
-                // Keep the tree structure as returned by Supabase
+                console.log(data)
                 setWorkspace({ spaces: data || [] });
             } catch (err: any) {
                 setError(err);
