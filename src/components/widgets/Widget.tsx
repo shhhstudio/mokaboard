@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { Flex, Box } from "@chakra-ui/react";
-import { Container, Status, Scope, Action, Heading } from "./base/index";
+import { Container, Status, Tag, Action, Heading } from "./base";
 import { Widget as WidgetType } from "@/types";
 import isEqual from "lodash/isEqual";
 
@@ -27,20 +27,16 @@ export const Widget: React.FC<WidgetProps> = React.memo(
             [onChange]
         );
         return (
-            <Container position="relative" {...containerProps}>
+            <Container position="relative" {...containerProps} bgColor={widget.status === "fail" ? "red.100" : (widget.status === "at_risk" ? "orange.100" : (widget.status === "on_track" ? "green.100" : undefined))}>
                 {(widget?.status !== null || selected === true) && (
                     <Box position="absolute" right={4.5} top={2.5}>
                         <Status value={widget?.status || "none"} onChange={onChangeField("status")} />
                     </Box>
                 )}
-                {widget?.scopes && widget?.scopes.length > 0 && (
-                    <Flex gap={1} position="absolute">
-                        {widget.scopes.map((scope, index) => (
-                            <Scope key={index} scope={scope} />
-                        ))}
-                    </Flex>
-                )}
-                <Flex alignItems="center" gap={2} ml={1} grow={1} maxHeight="100%">
+                <Flex gap={1}>
+                    <Tag tag={widget?.tag || undefined} onChange={onChangeField("tag")} />
+                </Flex>
+                <Flex alignItems="flex-start" gap={2} ml={1} mt={2} grow={1} maxHeight="100%">
                     <Heading
                         value={widget?.title || ""}
                         onChange={onChangeField("title")}

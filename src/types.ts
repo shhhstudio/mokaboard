@@ -86,7 +86,7 @@ export interface BoardWidget {
 }
 
 /*─────────────────────────*/
-/*  Widget & tags          */
+/*  Widget                 */
 /*─────────────────────────*/
 export interface Widget {
   id: UUID;
@@ -97,21 +97,5 @@ export interface Widget {
   type: string | null;         // e.g. 'kpi', 'announcement', …
   status: WidgetHealth;        // 'on_track' | 'at_risk' | 'fail' | null
   value: Record<string, any> | null;
-}
-
-export interface Tag {
-  id: UUID;
-  created_at: string;
-  space_id: UUID;
-  name: string;
-  label: string | null;
-  color: string | null;
-  category: string | null;
-  is_global: boolean;
-}
-
-export interface WidgetTag {
-  id: number;                  // bigint → JS number
-  widget_id: UUID;
-  tag_id: UUID;
+  tag: string | null;
 }

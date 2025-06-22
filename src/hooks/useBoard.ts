@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import type { Board, Widget, BoardWidget, Tag } from "@/types";
+import type { Board, Widget, BoardWidget } from "@/types";
 
 export interface BoardWithWidgets extends Board {
-    widgets: Array<Widget & { boardWidget: BoardWidget; tags: Tag[] }>;
+    widgets: Array<Widget & { boardWidget: BoardWidget }>;
 }
 
 interface BoardState {
@@ -28,7 +28,7 @@ export function useBoard(boardId: string | null) {
             }
             const { data, error } = await supabase
                 .from("board")
-                .select(`*, board_widget:board_widget(*, widget:widget(*, widget_tag:widget_tag(tag(*))))`)
+                .select(`*, board_widget:board_widget(*, widget:widget(*))`)
                 .eq("id", boardId)
                 .single();
             if (error || !data) {
@@ -36,7 +36,6 @@ export function useBoard(boardId: string | null) {
                 return;
             }
             const widgets: BoardWithWidgets["widgets"] = (data.board_widget || []).map((bw: any) => {
-                const tags = (bw?.widget?.widget_tag ?? []).map((wt: any) => wt.tag);
                 return {
                     ...bw.widget,
                     boardWidget: {
@@ -46,7 +45,6 @@ export function useBoard(boardId: string | null) {
                         widget_id: bw.widget_id,
                         order: bw.order,
                     },
-                    tags,
                 };
             });
             setState(s => ({ ...s, board: { ...data, widgets }, initialLoading: false, error: null }));

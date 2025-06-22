@@ -34,19 +34,19 @@ export const Status = React.forwardRef<HTMLDivElement, StatusProps>(
                                 <ChakraStatus.Root ref={ref} {...rest}>
                                     <ChakraStatus.Indicator bgColor={`moka.on_track`} />
                                 </ChakraStatus.Root>
-                                Done / On Track
+                                Green
                             </Menu.Item>
                             <Menu.Item value="at_risk">
                                 <ChakraStatus.Root ref={ref} {...rest}>
                                     <ChakraStatus.Indicator bgColor={`moka.at_risk`} />
                                 </ChakraStatus.Root>
-                                In Progress / At Risk
+                                Orange
                             </Menu.Item>
                             <Menu.Item value="fail">
                                 <ChakraStatus.Root ref={ref} {...rest}>
                                     <ChakraStatus.Indicator bgColor={`moka.fail`} />
                                 </ChakraStatus.Root>
-                                Urgent / Fail
+                                Red
                             </Menu.Item>
                             <Menu.Item value="none">
                                 <ChakraStatus.Root ref={ref} {...rest}>
