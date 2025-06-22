@@ -36,7 +36,7 @@ export function useBoard(boardId: string | null) {
                 return;
             }
             const widgets: BoardWithWidgets["widgets"] = (data.board_widget || []).map((bw: any) => {
-                const tags = (bw.widget.widget_tag || []).map((wt: any) => wt.tag);
+                const tags = (bw?.widget?.widget_tag ?? []).map((wt: any) => wt.tag);
                 return {
                     ...bw.widget,
                     boardWidget: {

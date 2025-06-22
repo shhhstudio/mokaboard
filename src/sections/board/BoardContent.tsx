@@ -1,8 +1,7 @@
 import React, { useMemo } from "react";
-import { Box, Button, Heading, Flex, SimpleGrid } from "@chakra-ui/react";
+import { Box, Flex, SimpleGrid } from "@chakra-ui/react";
 import { Widget, BlankWidget } from "@/components/widgets";
 import { Widget as WidgetType } from "@/types";
-import { navigate } from "@reach/router";
 import {
     updateWidget,
     deleteBoardWidget,
@@ -76,10 +75,10 @@ export const BoardContent: React.FC<BoardContentProps> = ({
         try {
             const widget = await createWidget({
                 title: "",
-                created_by: board!.created_by,
                 type: "kpi",
                 status: null,
                 value: {},
+                updated_at: new Date().toISOString(),
             });
             const newWidget = await addWidgetToBoard({
                 board_id: board!.id,

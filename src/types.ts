@@ -92,7 +92,7 @@ export interface Widget {
   id: UUID;
   created_at: string;
   updated_at: string;
-  created_by: UUID | null;
+  created_by?: UUID | null;
   title: string | null;
   type: string | null;         // e.g. 'kpi', 'announcement', …
   status: WidgetHealth;        // 'on_track' | 'at_risk' | 'fail' | null
