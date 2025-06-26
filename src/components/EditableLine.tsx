@@ -3,7 +3,7 @@ import { Input, Box, InputProps } from "@chakra-ui/react";
 
 interface EditableLineProps extends Omit<InputProps, "onChange" | "value"> {
     defaultValue?: string;
-    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onChange?: (s: string) => void;
     minWidth?: number;
     fontFamily?: string;
     fontSize?: string | number;
@@ -52,7 +52,7 @@ export function EditableLine({
                 target: inputRef.current,
                 currentTarget: inputRef.current,
             } as React.ChangeEvent<HTMLInputElement>;
-            onChange(event);
+            onChange(event.target.value);
         }
     };
 
@@ -72,8 +72,6 @@ export function EditableLine({
             inputRef.current?.blur();
         }
     };
-
-    console.log({ d: defaultValue, p: props?.placeholder, q: defaultValue ?? props?.placeholder, o: defaultValue || props?.placeholder });
 
     return (
         <Box position="relative" display="inline-block" height="100%">

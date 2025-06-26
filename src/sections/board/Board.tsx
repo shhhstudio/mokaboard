@@ -1,14 +1,26 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback } from "react";
 import { useParams, navigate } from "@reach/router";
 import { Button, Spinner, Text, Flex, IconButton, Box } from "@chakra-ui/react";
 import { useBoard } from "@/hooks/useBoard";
 import { BoardContent } from "./BoardContent";
 import { Layout } from "@/components/layout/Layout";
 import { FaArrowLeft } from "react-icons/fa6";
+import { EditableLine } from "@/components/EditableLine";
+import { updateBoard } from "@/hooks/apiBoards";
 
 export const Board: React.FC = () => {
     const { uuid } = useParams<{ uuid: string }>();
     const { board, error, initialLoading, refetch } = useBoard(uuid || null);
+
+    const updateBoardField = useCallback(
+        (field: string) => async (value: string) => {
+            if (board?.id) {
+                await updateBoard(board?.id, { [field]: value });
+                await refetch();
+            }
+        },
+        [board?.id, refetch]
+    );
 
     return (
         <Layout headerType="editor">
@@ -31,9 +43,22 @@ export const Board: React.FC = () => {
                     >
                         <FaArrowLeft />
                     </IconButton>
-                    <Text fontSize="sm">
-                        <strong>{board?.title}</strong>, {board?.description}
-                    </Text>
+
+                    <Flex fontSize="sm">
+                        <EditableLine
+                            defaultValue={board?.title ?? undefined}
+                            fontWeight={600}
+                            onChange={updateBoardField("title")}
+                            placeholder="Board Name"
+                        />
+                        ,
+                        <EditableLine
+                            marginLeft={1}
+                            defaultValue={board?.description ?? undefined}
+                            onChange={updateBoardField("description")}
+                            placeholder="Description"
+                        />
+                    </Flex>
                 </Flex>
             </Layout.Header>
             <Layout.Content>

@@ -42,7 +42,6 @@ export function useWorkspace() {
                     .from('space')
                     .select(`*,track(*,board(*))`);
                 if (error) throw error;
-                console.log(data)
                 setWorkspace({ spaces: data || [] });
             } catch (err: any) {
                 setError(err);

@@ -23,11 +23,7 @@ export const Tag: React.FC<TagProps> = ({ tag, onChange }) => {
         >
             <EditableLine
                 defaultValue={tag}
-                onChange={(e) => {
-                    if (onChange) {
-                        onChange(e.target.value);
-                    }
-                }}
+                onChange={onChange}
                 placeholder="Tag..."
             />
         </Badge>

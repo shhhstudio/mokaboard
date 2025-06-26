@@ -99,28 +99,16 @@ export default function BoardTimeline({
                                             window.location.href = `/app/board/${board.id}`;
                                         }}>
                                             <Flex direction="column" justify="space-between" grow={1}>
-                                                <Box>
-                                                    <EditableText
-                                                        value={board.title}
-                                                        onChange={async (newTitle) => {
-                                                            await updateBoard(board.id, { title: newTitle });
-                                                            refreshWorkspace();
-                                                        }}
+                                                <Box marginBottom={3}>
+                                                    <Text
+                                                        children={board.title}
                                                         fontWeight="medium"
                                                         fontSize="md"
-                                                        stopOnClickPropagation
                                                     />
-                                                    <EditableText
+                                                    <Text
                                                         fontSize="sm"
                                                         color="gray.500"
-                                                        value={board.description}
-                                                        onChange={async (newDescription) => {
-                                                            await updateBoard(board.id, {
-                                                                description: newDescription,
-                                                            });
-                                                            refreshWorkspace();
-                                                        }}
-                                                        stopOnClickPropagation
+                                                        children={board.description}
                                                     />
                                                 </Box>
                                                 <Flex align="center" gap={2} justify="space-between">
@@ -302,11 +290,9 @@ export const Home: React.FC<RouteProps> = () => {
                                                     space_id: space.id,
                                                     description: "",
                                                 });
-                                                console.log("Created track:", track);
                                                 setSelectedTrackId(track.id);
                                                 refreshWorkspace();
                                             } catch (e) {
-                                                console.log(e)
                                                 alert("Failed to update track name");
                                             }
                                         }}
