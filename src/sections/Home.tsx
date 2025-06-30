@@ -41,6 +41,19 @@ export default function BoardTimeline({
     >(null);
     const boards = selectedTrack.board || [];
 
+    useEffect(() => {
+        if (selectBoardToDeleteId === null) {
+            return;
+        }
+        const handleClickOutside = (e) => {
+            setSelectBoardToDeleteId(null);
+        };
+        document.addEventListener("click", handleClickOutside);
+        return () => {
+            document.removeEventListener("click", handleClickOutside);
+        };
+    }, [selectBoardToDeleteId !== null]);
+
     // Sort boards by date ascending
     const sorted = [...boards].sort((a, b) => {
         if (!a.date && !b.date) return 0;
@@ -95,9 +108,13 @@ export default function BoardTimeline({
                                 </Timeline.Title>
                                 <Flex mt={1} direction="row" gap={3} wrap={"wrap"}>
                                     {items.map((board) => (
-                                        <BoardThumbnail key={board.id} cursor="pointer" onClick={() => {
-                                            window.location.href = `/app/board/${board.id}`;
-                                        }}>
+                                        <BoardThumbnail
+                                            key={board.id}
+                                            cursor="pointer"
+                                            onClick={() => {
+                                                window.location.href = `/app/board/${board.id}`;
+                                            }}
+                                        >
                                             <Flex direction="column" justify="space-between" grow={1}>
                                                 <Box marginBottom={3}>
                                                     <Text
@@ -113,12 +130,10 @@ export default function BoardTimeline({
                                                 </Box>
                                                 <Flex align="center" gap={2} justify="space-between">
                                                     <IconButton
-                                                        aria-label="Add Board"
+                                                        aria-label="Delete Board"
                                                         variant="ghost"
                                                         size="2xs"
                                                         borderRadius="full"
-                                                        _focus={{ background: "red.200", color: "red.600" }}
-                                                        color="gray.400"
                                                         onClick={async (e) => {
                                                             e.stopPropagation();
                                                             if (selectBoardToDeleteId !== board.id) {
@@ -128,13 +143,15 @@ export default function BoardTimeline({
                                                                 setSelectBoardToDeleteId(null);
                                                                 refreshWorkspace();
                                                             }
-                                                            e.stopPropagation();
                                                         }}
                                                         onBlur={() => {
                                                             if (selectBoardToDeleteId === board.id) {
                                                                 setSelectBoardToDeleteId(null);
                                                             }
                                                         }}
+                                                        {...(selectBoardToDeleteId === board.id
+                                                            ? { background: "red.200", color: "red.600" }
+                                                            : {})}
                                                     >
                                                         <LuTrash2 />
                                                     </IconButton>
@@ -174,6 +191,7 @@ export default function BoardTimeline({
                                                         ? items[items.length - 1].date_from
                                                         : new Date().toISOString(),
                                                 status: "draft",
+                                                updated_at: new Date().toISOString(),
                                                 created_by: session?.user?.id || "anonymous",
                                             });
                                             refreshWorkspace();
