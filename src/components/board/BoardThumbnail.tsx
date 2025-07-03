@@ -10,7 +10,7 @@ export const BoardThumbnail = React.forwardRef<HTMLDivElement, BoardThumbnailPro
             ref={ref}
             p={3}
             borderRadius="2xl"
-            bg="moka.background"
+            bg="moka.background.solid"
             width="176px"
             direction="column"
             {...props}

@@ -23,7 +23,7 @@ export const Board: React.FC = () => {
     );
 
     return (
-        <Layout headerType="editor">
+        <Layout type="editor">
             <Layout.Header>
                 <Flex
                     gap={2}

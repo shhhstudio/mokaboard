@@ -172,7 +172,7 @@ export default function BoardTimeline({
                                     ))}
                                     <BoardThumbnail
                                         key="new-board"
-                                        background="moka.subtleBackground"
+                                        background="moka.background.subtle"
                                         align="center"
                                         justify="center"
                                         cursor="pointer"

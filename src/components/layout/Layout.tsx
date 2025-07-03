@@ -6,7 +6,7 @@ interface LayoutProps {
     children: ReactNode;
     sidebarWidth?: string | number;
     sidebarPosition?: "left" | "right";
-    headerType?: HeaderProps["headerType"];
+    type?: HeaderProps["type"];
     loading?: boolean;
 }
 
@@ -29,8 +29,8 @@ export const Layout: React.FC<LayoutProps> & {
     Header: React.FC<{ children: ReactNode }>;
     Sidebar: React.FC<{ children: ReactNode }>;
     Content: React.FC<{ children: ReactNode }>;
-} = ({ loading, children, sidebarWidth = 300, headerType = "default", sidebarPosition = "left" }) => {
-    const header = getChildOrDefault(Layout.Header, children, <Header headerType={headerType} />);
+} = ({ loading, children, sidebarWidth = 300, type = "default", sidebarPosition = "left" }) => {
+    const header = getChildOrDefault(Layout.Header, children, <Header type={type} />);
     const sidebar = getChildOrDefault(Layout.Sidebar, children);
     const content = getChildOrDefault(Layout.Content, children);
 
@@ -41,7 +41,7 @@ export const Layout: React.FC<LayoutProps> & {
                 {sidebar && (
                     <Flex flexDirection="column"
                         w={{ base: "full", md: sidebarWidth }}
-                        bg="moka.subtleBackground"
+                        bg="moka.background.subtle"
                         p={4}
                         borderRight="1px solid #e2e8f0"
                         alignSelf="stretch"

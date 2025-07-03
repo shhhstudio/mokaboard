@@ -34,8 +34,14 @@ const customConfig = defineConfig({
                     fail: { value: "{colors.red.500}" },
                     none: { value: "{colors.gray.300}" },
 
-                    background: { value: "#F3EFEC" },
-                    subtleBackground: { value: "#F3EFEC5F" },
+                    background: {
+                        on_track: { value: "{colors.green.100}" },
+                        at_risk: { value: "{colors.orange.100}" },
+                        fail: { value: "{colors.red.100}" },
+                        none: { value: "{colors.gray.100}" },
+                        solid: { value: "#F3EFEC" },
+                        subtle: { value: "#F3EFEC5F" },
+                    }
                 },
             },
         },
