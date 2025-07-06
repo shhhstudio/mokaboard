@@ -99,3 +99,14 @@ export interface Widget {
   value: Record<string, any> | null;
   tag: string | null;
 }
+
+
+export interface SpaceUserRow {
+  user_id: UUID;
+  role: PermissionRole;
+}
+
+export interface TrackUserRow {
+  user_id: UUID;
+  role: PermissionRole;
+}

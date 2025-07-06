@@ -5,6 +5,7 @@ import {
     Collapsible,
     Text,
     Flex,
+    Avatar,
     IconButton,
     useBreakpointValue,
 } from "@chakra-ui/react";
@@ -12,6 +13,7 @@ import { useSession } from "@/providers/AuthProvider";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { createBoard, deleteBoard, updateBoard } from "@/hooks/apiBoards";
 import { createTrack, updateTrack } from "@/hooks/apiTracks";
+import { createSpace, updateSpace, deleteSpace } from "@/hooks/apiSpaces";
 import { Layout } from "@/components/layout/Layout";
 import { Timeline } from "@chakra-ui/react";
 import { BoardThumbnail } from "@/components/board/BoardThumbnail";
@@ -23,6 +25,8 @@ import {
     LuX,
 } from "react-icons/lu";
 import { EditableText } from "@/components/EditableText";
+import { Icon, Select, Portal, createListCollection } from "@chakra-ui/react";
+import { set } from "lodash";
 
 interface RouteProps {
     path?: string;
@@ -218,26 +222,40 @@ export default function BoardTimeline({
 export const Home: React.FC<RouteProps> = () => {
     const session = useSession();
     const { workspace, loading, refreshWorkspace } = useWorkspace();
-    const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
+    const [selected, setSelected] = useState<{
+        space: string;
+        track: string | null;
+    } | null>(null);
     const collapsForceOpen = useBreakpointValue({ base: undefined, md: true });
     const [menuOpened, setMenuOpened] = useState<boolean>(false);
 
     // Find selected track object
-    const selectedTrack = React.useMemo(() => {
-        for (const space of workspace.spaces || []) {
-            const track = space.track?.find((t) => t.id === selectedTrackId);
-            if (track) return track;
-        }
-        return null;
-    }, [workspace.spaces, selectedTrackId]);
+    const spaceAndTrack = React.useMemo(() => {
+        const space = workspace.spaces.find(
+            (space) => space.id === selected?.space
+        );
+        const track = space?.track?.find((t) => t.id === selected?.track);
+        return { space, track };
+    }, [workspace.spaces, selected]);
 
     // Select first track of first space by default
     useEffect(() => {
-        if (!selectedTrackId && workspace.spaces && workspace.spaces.length > 0) {
+        if (!selected?.space && workspace.spaces && workspace.spaces.length > 0) {
             const firstTrack = workspace.spaces[0].track?.[0];
-            if (firstTrack) setSelectedTrackId(firstTrack.id);
+            if (firstTrack)
+                setSelected({
+                    space: workspace.spaces[0].id,
+                    track: firstTrack.id,
+                });
         }
-    }, [workspace.spaces, selectedTrackId]);
+    }, [workspace.spaces, selected]);
+
+    const spacesList = createListCollection({
+        items: workspace.spaces.map((space) => ({
+            label: space.name,
+            value: space.id,
+        })),
+    });
 
     return (
         <Layout>
@@ -254,12 +272,13 @@ export const Home: React.FC<RouteProps> = () => {
                         fontSize="md"
                         fontWeight="normal"
                         width="100%"
+                        hidden={collapsForceOpen ? true : false}
                     >
                         <Flex justify="space-between" align="center" width="100%">
                             <Text>
                                 {collapsForceOpen === undefined && menuOpened === false
-                                    ? selectedTrack?.name
-                                    : "Spaces"}
+                                    ? `${spaceAndTrack?.space?.name} > ${spaceAndTrack?.track?.name}`
+                                    : "Menu"}
                             </Text>
                             {collapsForceOpen === undefined &&
                                 (menuOpened ? <LuX /> : <LuAlignRight />)}
@@ -267,8 +286,30 @@ export const Home: React.FC<RouteProps> = () => {
                     </Collapsible.Trigger>
                     <Collapsible.Content paddingLeft={3} paddingTop={6}>
                         {workspace.spaces?.map((space) => (
-                            <Box key={space.id} mb={2}>
-                                <Text fontWeight="bold">{space.name || "Untitled Space"}</Text>
+                            <Box key={space.id} mb={6}>
+                                <Flex
+                                    width="100%"
+                                    alignItems="center"
+                                    justify={"space-between"}
+                                >
+                                    <EditableText
+                                        placeholder="New Workspace..."
+                                        value={space.name || undefined}
+                                        onChange={async (newName) => {
+                                            if (newName.trim().length > 0) {
+                                                await updateSpace(space.id, { name: newName });
+                                                refreshWorkspace();
+                                            } else if (space?.track?.length === 0) {
+                                                await deleteSpace(space.id);
+                                                setSelected(null);
+                                                refreshWorkspace();
+                                            }
+                                        }}
+                                        disabled={space.type === "private"}
+                                        _disabled={{ opacity: 1 }}
+                                        fontSize="md"
+                                    />
+                                </Flex>
                                 <Box pl={6} mt={1}>
                                     {space.track?.map((track) => (
                                         <Box
@@ -285,22 +326,26 @@ export const Home: React.FC<RouteProps> = () => {
                                                     refreshWorkspace();
                                                 }}
                                                 onClick={(e) => {
-                                                    setSelectedTrackId(track.id);
+                                                    console.log("Track clicked:", track.id);
+                                                    setSelected({ space: space.id, track: track.id });
                                                 }}
                                                 fontWeight={
-                                                    selectedTrackId === track.id ? "bold" : "normal"
+                                                    selected?.track === track.id ? "bold" : "normal"
                                                 }
                                                 fontSize="md"
                                             />
                                         </Box>
                                     ))}
-                                    <IconButton
-                                        marginTop={2}
+
+                                    <Box
+                                        key={"new-track"}
+                                        mt={3}
+                                        display="flex"
+                                        alignItems="center"
                                         aria-label="Add Project"
-                                        variant="subtle"
-                                        bgColor="moka.200"
-                                        size="2xs"
-                                        borderRadius="full"
+                                        fontSize="sm"
+                                        opacity={0.5}
+                                        cursor="pointer"
                                         onClick={async () => {
                                             try {
                                                 const track = await createTrack({
@@ -308,49 +353,110 @@ export const Home: React.FC<RouteProps> = () => {
                                                     space_id: space.id,
                                                     description: "",
                                                 });
-                                                setSelectedTrackId(track.id);
+                                                setSelected({ space: space.id, track: track.id });
                                                 refreshWorkspace();
                                             } catch (e) {
-                                                alert("Failed to update track name");
+                                                alert("Failed to create track");
+                                                console.log(e);
                                             }
                                         }}
                                     >
-                                        <LuPlus />
-                                    </IconButton>
+                                        <Icon size="xs" marginRight={1}>
+                                            <LuPlus />
+                                        </Icon>
+                                        New Project
+                                    </Box>
                                 </Box>
                             </Box>
                         ))}
+                        <Box
+                            key={"new-workspace"}
+                            mt={3}
+                            display="flex"
+                            alignItems="center"
+                            aria-label="Add Workspace"
+                            fontSize="sm"
+                            opacity={0.5}
+                            cursor="pointer"
+                            onClick={async () => {
+                                try {
+                                    const newWorkspace = await createSpace({
+                                        name: "",
+                                        type: "personal",
+                                        created_by: session?.user?.id || "anonymous",
+                                    });
+                                    setSelected({ space: newWorkspace.id, track: "" });
+                                    refreshWorkspace();
+                                } catch (e) {
+                                    alert("Failed to create track");
+                                    console.log(e);
+                                }
+                            }}
+                        >
+                            <Icon size="xs" marginRight={1}>
+                                <LuPlus />
+                            </Icon>
+                            New Workspace
+                        </Box>
                     </Collapsible.Content>
                 </Collapsible.Root>
             </Layout.Sidebar>
             <Layout.Content>
                 <Box flex={1} p={8}>
-                    {!selectedTrackId && (
+                    {!selected && (
                         <Text color="gray.500">Select a track to view its boards.</Text>
                     )}
-                    {selectedTrack && (
+                    {spaceAndTrack?.track && (
                         <Box mb={4}>
+                            <Flex marginBottom={12} gap={1}>
+                                {spaceAndTrack?.track?.members?.map((member, index) => {
+                                    return (
+                                        <Box key={index}>
+                                            <Avatar.Root size="xs">
+                                                <Avatar.Fallback
+                                                    name={member.user.firstname || undefined}
+                                                />
+                                                <Avatar.Image
+                                                    src={member.user.avatar_url || undefined}
+                                                />
+                                            </Avatar.Root>
+                                        </Box>
+                                    );
+                                })}
+                                <Box>
+                                    <IconButton
+                                        aria-label="Add Member"
+                                        variant="subtle"
+                                        size="xs"
+                                        borderRadius="full"
+                                    >
+                                        <LuPlus size={28} />
+                                    </IconButton>
+                                </Box>
+                            </Flex>
                             <BoardTimeline
-                                selectedTrack={selectedTrack}
+                                selectedTrack={spaceAndTrack?.track}
                                 deleteBoard={deleteBoard}
                                 refreshWorkspace={refreshWorkspace}
-                                selectedTrackId={selectedTrackId}
+                                selectedTrackId={selected?.track}
                                 session={session}
                             />
                         </Box>
                     )}
                     <Flex gap={2} mt={4}>
-                        {selectedTrack &&
-                            (!selectedTrack.board || selectedTrack.board.length === 0) && (
+                        {spaceAndTrack?.track &&
+                            (!spaceAndTrack?.track?.board ||
+                                spaceAndTrack?.track?.board.length === 0) && (
                                 <Button
                                     colorPalette="red"
                                     variant="subtle"
                                     onClick={async () => {
                                         try {
                                             await import("@/hooks/apiTracks").then(
-                                                ({ deleteTrack }) => deleteTrack(selectedTrack.id)
+                                                ({ deleteTrack }) =>
+                                                    deleteTrack(spaceAndTrack?.track?.id || "")
                                             );
-                                            setSelectedTrackId(null);
+                                            setSelected(null);
                                             refreshWorkspace();
                                         } catch {
                                             alert("Failed to delete track");

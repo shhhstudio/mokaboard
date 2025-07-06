@@ -4,21 +4,34 @@ import type {
     Board,
     Space,
     Track,
-    UUID,
-    PermissionRole,
-    BoardPermissionRole,
+    Widget,
+    BoardWidget,
+    TrackUserRow,
+    SpaceUserRow,
+    User
 } from "@/types";
 
-export interface WorkspaceTreeSpace extends Space {
-    space_user?: { user_id: UUID; role: PermissionRole }[];
-    track?: Array<WorkspaceTreeTrack>;
-}
-export interface WorkspaceTreeTrack extends Track {
-    track_user?: { user_id: UUID; role: PermissionRole }[];
-    board?: Array<WorkspaceTreeBoard>;
-}
 export interface WorkspaceTreeBoard extends Board {
-    board_user?: { user_id: UUID; role: BoardPermissionRole }[];
+    /* boards no longer carry board_user because table was removed */
+    widgets?: Array<Widget & { boardWidget: BoardWidget }>;
+}
+
+export interface WorkspaceTreeTrack extends Track {
+    /* members—in the same shape you select: role + user object   */
+    members?: Array<TrackUserRow & {
+        user: Pick<User,
+            "id" | "firstname" | "lastname" | "avatar_url">
+    }>;
+    board?: WorkspaceTreeBoard[];
+}
+
+export interface WorkspaceTreeSpace extends Space {
+    /* members of the space */
+    space_user?: Array<SpaceUserRow & {
+        user: Pick<User,
+            "id" | "firstname" | "lastname" | "avatar_url">
+    }>;
+    track?: WorkspaceTreeTrack[];
 }
 
 export interface WorkspaceTree {
@@ -38,9 +51,7 @@ export function useWorkspace() {
 
         (async () => {
             try {
-                const { data, error } = await supabase
-                    .from('space')
-                    .select(`*,track(*,board(*))`);
+                const { data, error } = await supabase.from("space").select(`*,track(*,board(*),members:track_user(role,user:users(id, firstname, lastname, avatar_url)))`);
                 if (error) throw error;
                 setWorkspace({ spaces: data || [] });
             } catch (err: any) {
