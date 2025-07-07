@@ -59,7 +59,7 @@ export const BoardContent: React.FC<BoardContentProps> = ({
                 },
                 onDelete: async () => {
                     try {
-                        await deleteBoardWidget(widget.boardWidget.id);
+                        await deleteBoardWidget(widget?.boardWidget?.id);
                         await deleteWidget(widget.id);
                         await refetch();
                     } catch (e) {

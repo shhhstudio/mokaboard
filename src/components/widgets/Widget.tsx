@@ -43,8 +43,9 @@ export const Widget: React.FC<WidgetProps> = React.memo(
                     />
                 </Flex>
                 {selected === true && (
-                    <Flex gap={1} position="absolute" bottom={3} bgColor="red.100" right={3}>
+                    <Flex gap={2} position="absolute" bottom={3} right={3}>
                         <Action type="delete" aria-label="Delete Widget" onClick={onDelete} />
+                        <Action type="open" aria-label="Open Widget" onClick={() => { }} />
                     </Flex>
                 )}
             </Container>
