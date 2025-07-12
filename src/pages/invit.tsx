@@ -18,7 +18,9 @@ const ClaimInvitationPage: React.FC<PageProps> = () => {
       navigate(`/app/login?next=${encodeURIComponent(location.pathname + location.search)}`);
       return;
     }
-    claimInvitation(token).then(() => navigate("/app"));
+    claimInvitation(token)
+      .then(() => navigate("/app"))
+      .catch((err) => console.error("Failed to claim invitation:", err));
   }, [location.search, location.pathname, session, claimInvitation]);
 
   if (loading || session === undefined) {
