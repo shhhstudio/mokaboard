@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import type { Invitation } from "@/types";
+import type { PostgrestError } from "@supabase/postgrest-js";
 
 interface State {
   invitations: Invitation[];
   loading: boolean;
-  error: Error | null;
+  error: PostgrestError | null;
 }
 
 export function useInvitations() {
