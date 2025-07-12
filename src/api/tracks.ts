@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import type { Track } from "@/types";
 
-export async function createTrack(track: Omit<Track, "id" | "created_at">): Promise<Track> {
+export async function createTrack(track: Omit<Track, "id" | "created_at" | "created_by">): Promise<Track> {
     const { data, error } = await supabase
         .from("track")
         .insert(track)

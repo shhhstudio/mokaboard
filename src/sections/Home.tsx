@@ -11,9 +11,9 @@ import {
 } from "@chakra-ui/react";
 import { useSession } from "@/providers/AuthProvider";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { createBoard, deleteBoard, updateBoard } from "@/hooks/apiBoards";
-import { createTrack, updateTrack } from "@/hooks/apiTracks";
-import { createSpace, updateSpace, deleteSpace } from "@/hooks/apiSpaces";
+import { createBoard, deleteBoard, updateBoard } from "@/api/boards";
+import { createTrack, updateTrack } from "@/api/tracks";
+import { createSpace, updateSpace, deleteSpace } from "@/api/spaces";
 import { Layout } from "@/components/layout/Layout";
 import { Timeline } from "@chakra-ui/react";
 import { BoardThumbnail } from "@/components/board/BoardThumbnail";
@@ -452,7 +452,7 @@ export const Home: React.FC<RouteProps> = () => {
                                     variant="subtle"
                                     onClick={async () => {
                                         try {
-                                            await import("@/hooks/apiTracks").then(
+                                            await import("@/api/tracks").then(
                                                 ({ deleteTrack }) =>
                                                     deleteTrack(spaceAndTrack?.track?.id || "")
                                             );
