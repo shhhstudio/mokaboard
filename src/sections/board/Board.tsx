@@ -6,7 +6,7 @@ import { BoardContent } from "./BoardContent";
 import { Layout } from "@/components/layout/Layout";
 import { FaArrowLeft } from "react-icons/fa6";
 import { EditableLine } from "@/components/EditableLine";
-import { updateBoard } from "@/hooks/apiBoards";
+import { updateBoard } from "@/api/boards";
 
 export const Board: React.FC = () => {
     const { uuid } = useParams<{ uuid: string }>();

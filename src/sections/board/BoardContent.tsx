@@ -8,7 +8,7 @@ import {
     deleteWidget,
     createWidget,
     addWidgetToBoard,
-} from "@/hooks/apiWidgets";
+} from "@/api/widgets";
 
 
 interface BoardContentProps {

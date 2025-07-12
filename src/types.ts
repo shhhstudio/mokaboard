@@ -11,6 +11,7 @@ export type SpaceType = "private" | "team" | string;
 export type PermissionRole = "owner" | "member" | "guest";
 export type BoardStatus = "private" | "draft" | "published" | "archived";
 export type WidgetHealth = "on_track" | "at_risk" | "fail" | null;
+export type InvitationStatus = "pending" | "accepted" | "cancelled";
 
 /*─────────────────────────*/
 /*  Users                  */
@@ -48,6 +49,7 @@ export interface SpaceUser {
 export interface Track {
   id: UUID;
   created_at: string;
+  created_by: UUID | null;
   space_id: UUID | null;
   name: string | null;
   description: string | null;
@@ -73,7 +75,7 @@ export interface Board {
   description: string | null;
   date: string | null;
   date_from: string | null;
-  status: BoardStatus | null;  // 'private' | 'draft' | 'published' | 'archived' | null
+  status: BoardStatus | null;  // 'private' | 'draft' | 'published' | 'archived'
   created_by: UUID;
 }
 
@@ -109,4 +111,18 @@ export interface SpaceUserRow {
 export interface TrackUserRow {
   user_id: UUID;
   role: PermissionRole;
+}
+
+export interface Invitation {
+  id: UUID;
+  token: UUID;
+  space_id: UUID | null;
+  track_id: UUID | null;
+  role: PermissionRole;
+  invited_email: string;
+  invited_by: UUID | null;
+  accepted_by: UUID | null;
+  status: InvitationStatus;
+  created_at: string;
+  expires_at: string;
 }
