@@ -156,9 +156,8 @@ export default function BoardTimeline({
                                                         {...(selectBoardToDeleteId === board.id
                                                             ? { background: "red.200", color: "red.600" }
                                                             : {})}
-                                                    >
-                                                        <LuTrash2 />
-                                                    </IconButton>
+                                                        icon={<Icon as={LuTrash2} />}
+                                                    />
                                                     <IconButton
                                                         aria-label="Add Board"
                                                         variant="ghost"
@@ -167,9 +166,8 @@ export default function BoardTimeline({
                                                         onClick={() =>
                                                             (window.location.href = `/app/board/${board.id}`)
                                                         }
-                                                    >
-                                                        <LuArrowRight />
-                                                    </IconButton>
+                                                        icon={<Icon as={LuArrowRight} />}
+                                                    />
                                                 </Flex>
                                             </Flex>
                                         </BoardThumbnail>
@@ -206,9 +204,8 @@ export default function BoardTimeline({
                                             variant="ghost"
                                             size="lg"
                                             borderRadius="full"
-                                        >
-                                            <LuPlus />
-                                        </IconButton>
+                                            icon={<Icon as={LuPlus} />}
+                                        />
                                     </BoardThumbnail>
                                 </Flex>
                             </Timeline.Content>
@@ -281,7 +278,11 @@ export const Home: React.FC<RouteProps> = () => {
                                     : "Menu"}
                             </Text>
                             {collapsForceOpen === undefined &&
-                                (menuOpened ? <LuX /> : <LuAlignRight />)}
+                                (menuOpened ? (
+                                    <Icon as={LuX} />
+                                ) : (
+                                    <Icon as={LuAlignRight} />
+                                ))}
                         </Flex>
                     </Collapsible.Trigger>
                     <Collapsible.Content paddingLeft={3} paddingTop={6}>
@@ -361,9 +362,7 @@ export const Home: React.FC<RouteProps> = () => {
                                             }
                                         }}
                                     >
-                                        <Icon size="xs" marginRight={1}>
-                                            <LuPlus />
-                                        </Icon>
+                                        <Icon as={LuPlus} boxSize={3} marginRight={1} />
                                         New Project
                                     </Box>
                                 </Box>
@@ -393,9 +392,7 @@ export const Home: React.FC<RouteProps> = () => {
                                 }
                             }}
                         >
-                            <Icon size="xs" marginRight={1}>
-                                <LuPlus />
-                            </Icon>
+                            <Icon as={LuPlus} boxSize={3} marginRight={1} />
                             New Workspace
                         </Box>
                     </Collapsible.Content>
@@ -429,9 +426,8 @@ export const Home: React.FC<RouteProps> = () => {
                                         variant="subtle"
                                         size="xs"
                                         borderRadius="full"
-                                    >
-                                        <LuPlus size={28} />
-                                    </IconButton>
+                                        icon={<Icon as={LuPlus} boxSize={7} />}
+                                    />
                                 </Box>
                             </Flex>
                             <BoardTimeline

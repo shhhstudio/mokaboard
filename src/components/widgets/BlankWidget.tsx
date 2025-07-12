@@ -1,5 +1,5 @@
 import React from "react";
-import { Flex, IconButton } from "@chakra-ui/react";
+import { Flex, IconButton, Icon } from "@chakra-ui/react";
 import { Container } from "./base/Container";
 import { LuPlus } from "react-icons/lu";
 
@@ -19,9 +19,8 @@ const InternalBlankWidget: React.FC<BlankWidgetProps> = ({ onAdd }) => (
                 fontSize="2xl"
                 fontWeight={700}
                 onClick={onAdd}
-            >
-                <LuPlus size={28} />
-            </IconButton>
+                icon={<Icon as={LuPlus} boxSize={7} />}
+            />
         </Flex>
     </Container >
 );
