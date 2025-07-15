@@ -4,7 +4,7 @@ import type { Invitation } from "@/types";
 export async function createInvitation(
   invitation: Omit<
     Invitation,
-    "id" | "created_at" | "token" | "status" | "accepted_by"
+    "id" | "created_at" | "token" | "status" | "accepted_by" | "invited_by" | "expires_at"
   >
 ): Promise<Invitation> {
   const { data, error } = await supabase
