@@ -27,6 +27,7 @@ import {
 import { EditableText } from "@/components/EditableText";
 import { Icon, Select, Portal, createListCollection } from "@chakra-ui/react";
 import { set } from "lodash";
+import { createInvitation } from "@/api/invitations";
 
 interface RouteProps {
     path?: string;
@@ -156,8 +157,7 @@ export default function BoardTimeline({
                                                         {...(selectBoardToDeleteId === board.id
                                                             ? { background: "red.200", color: "red.600" }
                                                             : {})}
-                                                        icon={<Icon as={LuTrash2} />}
-                                                    />
+                                                    ><LuTrash2 /></IconButton>
                                                     <IconButton
                                                         aria-label="Add Board"
                                                         variant="ghost"
@@ -166,8 +166,7 @@ export default function BoardTimeline({
                                                         onClick={() =>
                                                             (window.location.href = `/app/board/${board.id}`)
                                                         }
-                                                        icon={<Icon as={LuArrowRight} />}
-                                                    />
+                                                    ><LuArrowRight /></IconButton>
                                                 </Flex>
                                             </Flex>
                                         </BoardThumbnail>
@@ -204,8 +203,7 @@ export default function BoardTimeline({
                                             variant="ghost"
                                             size="lg"
                                             borderRadius="full"
-                                            icon={<Icon as={LuPlus} />}
-                                        />
+                                        ><LuPlus /></IconButton>
                                     </BoardThumbnail>
                                 </Flex>
                             </Timeline.Content>
@@ -278,11 +276,7 @@ export const Home: React.FC<RouteProps> = () => {
                                     : "Menu"}
                             </Text>
                             {collapsForceOpen === undefined &&
-                                (menuOpened ? (
-                                    <Icon as={LuX} />
-                                ) : (
-                                    <Icon as={LuAlignRight} />
-                                ))}
+                                (menuOpened ? <Icon as={LuX} /> : <Icon as={LuAlignRight} />)}
                         </Flex>
                     </Collapsible.Trigger>
                     <Collapsible.Content paddingLeft={3} paddingTop={6}>
@@ -426,9 +420,31 @@ export const Home: React.FC<RouteProps> = () => {
                                         variant="subtle"
                                         size="xs"
                                         borderRadius="full"
-                                        icon={<Icon as={LuPlus} boxSize={7} />}
-                                    />
+                                    >
+                                        <LuPlus />
+                                    </IconButton>
                                 </Box>
+                                <EditableText
+                                    placeholder="invite by email"
+                                    onChange={async (email) => {
+                                        console.log("Invite by email:", email);
+                                        if (email.trim().length > 0) {
+                                            try {
+                                                await createInvitation({
+                                                    invited_email: email,
+                                                    space_id: spaceAndTrack?.space?.id || null,
+                                                    track_id: spaceAndTrack?.track?.id || null,
+                                                    role: "owner",
+                                                });
+                                                refreshWorkspace();
+                                            } catch (e) {
+                                                alert("Failed to create invitation");
+                                                console.error(e);
+                                            }
+                                        }
+                                    }}
+                                    fontSize="md"
+                                />
                             </Flex>
                             <BoardTimeline
                                 selectedTrack={spaceAndTrack?.track}
@@ -448,9 +464,8 @@ export const Home: React.FC<RouteProps> = () => {
                                     variant="subtle"
                                     onClick={async () => {
                                         try {
-                                            await import("@/api/tracks").then(
-                                                ({ deleteTrack }) =>
-                                                    deleteTrack(spaceAndTrack?.track?.id || "")
+                                            await import("@/api/tracks").then(({ deleteTrack }) =>
+                                                deleteTrack(spaceAndTrack?.track?.id || "")
                                             );
                                             setSelected(null);
                                             refreshWorkspace();

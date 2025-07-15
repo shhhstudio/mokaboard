@@ -19,10 +19,11 @@ const InternalBlankWidget: React.FC<BlankWidgetProps> = ({ onAdd }) => (
                 fontSize="2xl"
                 fontWeight={700}
                 onClick={onAdd}
-                icon={<Icon as={LuPlus} boxSize={7} />}
-            />
+            >
+                <LuPlus />
+            </IconButton>
         </Flex>
-    </Container >
+    </Container>
 );
 
 export const BlankWidget = React.memo(InternalBlankWidget);

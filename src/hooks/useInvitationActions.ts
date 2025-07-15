@@ -15,7 +15,7 @@ export function useInvitationActions() {
     async (
       invitation: Omit<
         Invitation,
-        "id" | "created_at" | "token" | "status" | "accepted_by"
+        "id" | "created_at" | "token" | "status" | "accepted_by" | "invited_by" | "expires_at"
       >
     ) => {
       setState(s => ({ ...s, loading: true, error: null }));
